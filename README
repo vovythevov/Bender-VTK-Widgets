@@ -1,0 +1,5 @@
+README
+
+This project is meant to add animation widgets to VTK.
+Those widgets were develloped with VTK 5.8.0
+(Can be found here: http://www.vtk.org/VTK/resources/software.html#previous)
