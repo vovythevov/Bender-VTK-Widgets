@@ -140,6 +140,13 @@ class ThreeBonesTestKeyPressInteractorStyle : public vtkInteractorStyleTrackball
         SonWidget->SetDebugAxes(state);
         MiddleSonWidget->SetDebugAxes(state);
         }
+      else if (key == "l")
+        {
+        MiddleSonWidget->SetP1LinkedToParent(
+         ! MiddleSonWidget->GetP1LinkedToParent() );
+        SonWidget->SetP1LinkedToParent(
+         ! SonWidget->GetP1LinkedToParent() );
+        }
       }
 
     vtkBoneWidget* Widget;

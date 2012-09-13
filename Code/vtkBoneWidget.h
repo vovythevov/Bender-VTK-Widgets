@@ -30,6 +30,8 @@
 
 #include "vtkCommand.h"
 
+#include <vector>
+
 class vtkBoneRepresentation;
 class vtkBoneWidgetCallback;
 class vtkHandleWidget;
@@ -89,10 +91,10 @@ public:
   // Description:
   //Start Mode:   Define the first point when clicked. Goes then to define mode
   //Define Mode:  Define the second point when clicked. Goes then to rest mode
-  //Rest Mode:    The bone can be moved and rescaled. If the bone has sons, 
-  //              the sons will head will (P1) rescale in order to have their
-  //              head at the same distance
-  //Pose Mode:    The bone can only be rotated. If the bone has sons, the sons
+  //Rest Mode:    The bone can be moved and rescaled. If the bone has Children,
+  //              the Children will head will (P1) rescale of they are linked
+  //              (See P1LinkedToParent)
+  //Pose Mode:    The bone can only be rotated. If the bone has Children, the Children
   //              will rotate accordingly but will stay exactly the same
   //              (NO rescaling)
   //BTX
@@ -169,7 +171,6 @@ public:
   virtual int GetWidgetState()
   {return this->WidgetState;}
 
-
   //Description:
   //Get the transform from world to bone coordinates.
   //This transform is:
@@ -178,6 +179,15 @@ public:
   //    Start/Define mode T = NULL
   //The user is responsible for deleting the transformed received
   vtkTransform* GetWorldToBoneTransform();
+
+  //Description
+  // Set/Get if the bone P1 is linked, i.e merged. with the parent P2
+  // When setting this to true, the bone P1 is automatically snapped
+  // to the parent P2 and the P1 widget is disabled
+  // When setting this to false, nothing visible happen but the P1
+  // widget is re-enabled.
+  vtkGetMacro(P1LinkedToParent, int);
+  void SetP1LinkedToParent (int link);
 
 protected:
   vtkBoneWidget();
@@ -207,29 +217,35 @@ protected:
   virtual void EndBoneInteraction();
 
   //Set the current bone parent.
-  vtkBoneWidget*          BoneParent;
-  vtkBoneWidgetCallback*  BoneWidgetSonsCallback;
-  double                  LocalP1[3];
-  double                  LocalP2[3];
-  double                  PoseP1[3];
-  double                  PoseP2[3];
-  double                  OldPoseTransform[4];
-  double                  Roll; // in radians
-  double                  Orientation[4];
-  double                  PoseTransform[4];
+  vtkBoneWidget*              BoneParent;
+  vtkBoneWidgetCallback*      BoneWidgetChildrenCallback;
+  double                      LocalP1[3];
+  double                      LocalP2[3];
+  double                      PoseP1[3];
+  double                      PoseP2[3];
+  double                      OldPoseTransform[4];
+  double                      Roll; // in radians
+  double                      Orientation[4];
+  double                      PoseTransform[4];
+  int                         P1LinkedToParent;
 
-  int                     DebugAxes;
-  vtkLineWidget2*         DebugX;
-  vtkLineWidget2*         DebugY;
-  vtkLineWidget2*         DebugZ;
-  double                  DebugAxesSize;
+  int                         DebugAxes;
+  vtkLineWidget2*             DebugX;
+  vtkLineWidget2*             DebugY;
+  vtkLineWidget2*             DebugZ;
+  double                      DebugAxesSize;
 
   void RebuildOrientation();
   void RebuildLocalPoints();
   void RebuildPoseTransform();
   void RebuildDebugAxes();
 
-  //Function called upon father events
+  //Move the point p1 to the parent p2
+  void LinkPoint1ToParent();
+  //Mmove this P2 to the child's P1. Used for translations.
+  void LinkParentPoint2To(vtkBoneWidget* child);
+
+  //Function called upon Parent events
   void BoneParentPoseChanged();
   void BoneParentInteractionStopped();
   void BoneParentRestChanged();

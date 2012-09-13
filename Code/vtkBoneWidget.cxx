@@ -222,8 +222,8 @@ vtkBoneWidget::vtkBoneWidget()
   this->Point2Widget->AddObserver(vtkCommand::EndInteractionEvent, this->BoneWidgetCallback2,
                                   this->Priority);
 
-  this->BoneWidgetSonsCallback = vtkBoneWidgetCallback::New();
-  this->BoneWidgetSonsCallback->BoneWidget = this;
+  this->BoneWidgetChildrenCallback = vtkBoneWidgetCallback::New();
+  this->BoneWidgetChildrenCallback->BoneWidget = this;
 
   // These are the event callbacks supported by this widget
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonPressEvent,
@@ -243,6 +243,7 @@ vtkBoneWidget::vtkBoneWidget()
   this->DebugAxesSize = 0.2;
 
   this->BoneSelected = 0;
+  this->P1LinkedToParent = 0;
 }
 
 //----------------------------------------------------------------------
@@ -438,14 +439,19 @@ void vtkBoneWidget::SetBoneParent(vtkBoneWidget* parent)
   if (parent)
     {
     parent->AddObserver(vtkBoneWidget::RestChangedEvent,
-                        this->BoneWidgetSonsCallback,
+                        this->BoneWidgetChildrenCallback,
                         this->Priority);
     parent->AddObserver(vtkBoneWidget::PoseChangedEvent,
-                        this->BoneWidgetSonsCallback,
+                        this->BoneWidgetChildrenCallback,
                         this->Priority);
     parent->AddObserver(vtkBoneWidget::PoseInteractionStoppedEvent,
-                        this->BoneWidgetSonsCallback,
+                        this->BoneWidgetChildrenCallback,
                         this->Priority);
+
+    if (this->P1LinkedToParent)
+      {
+      this->LinkPoint1ToParent();
+      }
 
     this->RebuildLocalPoints();
     }
@@ -762,12 +768,17 @@ void vtkBoneWidget::AddPointAction(vtkAbstractWidget *w)
     self->WidgetState = vtkBoneWidget::Define;
     self->InvokeEvent(vtkCommand::StartInteractionEvent,NULL);
 
-    //Place Point
-    vtkBoneRepresentation::SafeDownCast(self->WidgetRep)->SetPoint1DisplayPosition(e);
-    self->Point1Widget->SetEnabled(1);
-
-    self->RebuildOrientation();
-    self->RebuildDebugAxes();
+    if (self->P1LinkedToParent && self->BoneParent)
+      {
+      vtkBoneRepresentation::SafeDownCast(self->WidgetRep)->SetPoint1WorldPosition(
+        self->BoneParent->GetvtkBoneRepresentation()->GetPoint1WorldPosition());
+      }
+    else
+      {
+      //Place Point yourself
+      vtkBoneRepresentation::SafeDownCast(self->WidgetRep)->SetPoint1DisplayPosition(e);
+      self->Point1Widget->SetEnabled(1);
+      }
     }
 
   // If defining we are placing the second or third point
@@ -892,6 +903,11 @@ void vtkBoneWidget::MoveAction(vtkAbstractWidget *w)
       self->RebuildOrientation();
       self->RebuildLocalPoints();
       self->RebuildDebugAxes();
+
+      if (self->P1LinkedToParent && self->BoneParent)
+        {
+        self->BoneParent->LinkParentPoint2To(self);
+        }
 
       self->InvokeEvent(vtkBoneWidget::RestChangedEvent, NULL);
       self->InvokeEvent(vtkCommand::InteractionEvent,NULL);
@@ -1131,26 +1147,13 @@ void vtkBoneWidget::RebuildPoseTransform()
 //-------------------------------------------------------------------------
 void vtkBoneWidget::BoneParentRestChanged()
 {
-  //std::cout<<"Bone Parent rest changed"<<std::endl;
-  //Assume event triggered properly
+  //In the previous behavior, we had the child P1 to follow the parent
+  //P2 in distance
 
-  //Must rescale P1 to follow bone parent Head (P2)
-  if (this->BoneParent)
+  //Now they either are stuck together or nothing
+  if (this->P1LinkedToParent)
     {
-    double *newP1, axis[3];
-    double angle = QuaternionToAxisAngle(this->BoneParent->GetOrientation(), axis);
-    vtkMath::Normalize(axis);
-
-    vtkSmartPointer<vtkTransform> T = vtkSmartPointer<vtkTransform>::New();
-    T->Translate(this->BoneParent->GetvtkBoneRepresentation()->GetPoint2WorldPosition());
-    T->RotateWXYZ(vtkMath::DegreesFromRadians(angle), axis);
-    //T->RotateWXYZ(-1.0*vtkMath::DegreesFromRadians(angle), axis);
-    newP1 = T->TransformDoublePoint(this->LocalP1);
-    this->GetvtkBoneRepresentation()->SetPoint1WorldPosition(newP1);
-
-    this->RebuildOrientation();
-    this->RebuildLocalPoints();
-    this->RebuildDebugAxes();
+    this->LinkPoint1ToParent();
     }
 }
 
@@ -1228,6 +1231,11 @@ void vtkBoneWidget::SetWidgetStateToRest()
   InitializeVector3(this->PoseP1);
   InitializeVector3(this->PoseP2);
   this->WidgetState = vtkBoneWidget::Rest;
+
+  if (this->P1LinkedToParent)
+    {
+    this->LinkPoint1ToParent();
+    }
 
   this->RebuildOrientation();
   this->RebuildLocalPoints();
@@ -1327,6 +1335,54 @@ void vtkBoneWidget::RebuildDebugAxes()
 }
 
 //----------------------------------------------------------------------
+void vtkBoneWidget::SetP1LinkedToParent(int link)
+{
+  if (link)
+    {
+    if (!this->BoneParent)
+      {
+      std::cerr<<"Cannot link P1 to a non-existing parent."
+                " Set the bone parent before. ->Doing nothing."<<std::endl;
+      }
+
+    //Disable P1
+    this->Point1Selected = 0;
+    this->Point1Widget->SetEnabled(0);
+
+    this->LinkPoint1ToParent();
+    }
+  else
+    {
+    this->Point1Widget->SetEnabled(1);
+    }
+
+  this->P1LinkedToParent = link;
+}
+
+//----------------------------------------------------------------------
+void vtkBoneWidget::LinkPoint1ToParent()
+{
+  //Move this Point1 to Follow the parent movement
+  if (this->BoneParent)
+    {
+    this->SetPoint1WorldPosition(
+      this->BoneParent->GetvtkBoneRepresentation()->GetPoint2WorldPosition());
+    }
+}
+
+//----------------------------------------------------------------------
+void vtkBoneWidget::LinkParentPoint2To(vtkBoneWidget* child)
+{
+  // Move this point to snap to given child
+  if (child->GetP1LinkedToParent()) //never to sure
+    //(I could even verify the child's parent is indeed this)
+    {
+    this->SetPoint2WorldPosition(
+      child->GetvtkBoneRepresentation()->GetPoint1WorldPosition());
+    }
+}
+
+//----------------------------------------------------------------------
 void vtkBoneWidget::AxisAngleToQuaternion(double axis[3], double angle, double quad[4])
 {
   quad[0] = cos( angle / 2.0 );
@@ -1414,7 +1470,9 @@ void vtkBoneWidget::PrintSelf(ostream& os, vtkIndent indent)
   this->Superclass::PrintSelf(os,indent);
 
   os << indent << "Bone Widget " << this << "\n";
+
   os << indent << "Widget State: "<< this->WidgetState<< "\n";
+
   os << indent << "Selected:"<< "\n";
   os << indent << "  Bone Selected: "<< this->BoneSelected<< "\n";
   os << indent << "  P1 Selected: "<< this->Point1Selected<< "\n";
@@ -1456,6 +1514,7 @@ void vtkBoneWidget::PrintSelf(ostream& os, vtkIndent indent)
                                 << "  " << this->OldPoseTransform[3]<< "\n";
 
   os << indent << "Roll: "<< this->Roll << "\n";
+  os << indent << "P1LinkToParent: "<< this->P1LinkedToParent << "\n";
 
   os << indent << "Debug:" << "\n";
   os << indent << "  Debug Axes: "<< this->DebugAxes << "\n";

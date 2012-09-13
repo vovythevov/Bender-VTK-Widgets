@@ -58,7 +58,7 @@ class TwoBonesTestKeyPressInteractorStyle : public vtkInteractorStyleTrackballCa
       {
       vtkRenderWindowInteractor *rwi = this->Interactor;
       std::string key = rwi->GetKeySym();
-      //std::cout<<"Key Pressed: "<<key<<std::endl;
+      std::cout<<"Key Pressed: "<<key<<std::endl;
 
       if (key == "Control_L")
         {
@@ -89,6 +89,11 @@ class TwoBonesTestKeyPressInteractorStyle : public vtkInteractorStyleTrackballCa
           }
         Widget->SetDebugAxes(state);
         SonWidget->SetDebugAxes(state);
+        }
+      else if (key == "l")
+        {
+        SonWidget->SetP1LinkedToParent(
+         ! SonWidget->GetP1LinkedToParent() );
         }
       }
 
