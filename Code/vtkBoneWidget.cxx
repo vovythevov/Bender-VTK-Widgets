@@ -1344,6 +1344,41 @@ void vtkBoneWidget::AxisAngleToQuaternion(double axis[3], double angle, double q
 }
 
 //----------------------------------------------------------------------
+vtkTransform* vtkBoneWidget::GetWorldToBoneTransform()
+{
+  if (this->WidgetState == vtkBoneWidget::Start
+      || this->WidgetState == vtkBoneWidget::Define)
+    {
+    return NULL;
+    }
+  else
+    {
+    double o[3], axis[3], angle;
+    this->GetvtkBoneRepresentation()->GetPoint1WorldPosition(o);
+
+    vtkTransform* T = vtkTransform::New();
+    T->Translate( o );
+
+    if (this->WidgetState == Rest)
+      {
+      angle = QuaternionToAxisAngle(this->Orientation, axis);
+      }
+    else //Pose mode
+      {
+      double resultTransform[4];
+      MultiplyQuaternion(this->BoneParent->GetPoseTransform(),
+                       this->BoneParent->GetOrientation(),
+                       resultTransform);
+      NormalizeQuaternion(resultTransform);
+
+      angle = QuaternionToAxisAngle(resultTransform, axis);
+      }
+    T->RotateWXYZ(angle, axis);
+    return T;
+    }
+}
+
+//----------------------------------------------------------------------
 double vtkBoneWidget::QuaternionToAxisAngle(double quad[4], double axis[3])
 {
   double angle = acos(quad[0]) *2.0;

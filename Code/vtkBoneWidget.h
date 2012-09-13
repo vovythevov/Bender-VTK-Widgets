@@ -169,6 +169,16 @@ public:
   virtual int GetWidgetState()
   {return this->WidgetState;}
 
+
+  //Description:
+  //Get the transform from world to bone coordinates.
+  //This transform is:
+  //    Rest mode T = Orientation + Translation
+  //    Pose mode T = Orientation*PoseTransform + Translation
+  //    Start/Define mode T = NULL
+  //The user is responsible for deleting the transformed received
+  vtkTransform* GetWorldToBoneTransform();
+
 protected:
   vtkBoneWidget();
   ~vtkBoneWidget();
