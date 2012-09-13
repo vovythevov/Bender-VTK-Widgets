@@ -1412,4 +1412,52 @@ double vtkBoneWidget::QuaternionToAxisAngle(double quad[4], double axis[3])
 void vtkBoneWidget::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
+
+  os << indent << "Bone Widget " << this << "\n";
+  os << indent << "Widget State: "<< this->WidgetState<< "\n";
+  os << indent << "Selected:"<< "\n";
+  os << indent << "  Bone Selected: "<< this->BoneSelected<< "\n";
+  os << indent << "  P1 Selected: "<< this->Point1Selected<< "\n";
+  os << indent << "  P2 Selected: "<< this->Point2Selected<< "\n";
+
+  if (this->BoneParent)
+    {
+    os << indent << "Bone Parent: "<< this->BoneParent << "\n";
+    }
+
+  os << indent << "Local Points:" << "\n";
+  os << indent << "  Local P1: "<< this->LocalP1[0]
+                                << "  " << this->LocalP1[1]
+                                << "  " << this->LocalP1[2]<< "\n";
+  os << indent << "  Local P2: "<< this->LocalP2[0]
+                                << "  " << this->LocalP2[1]
+                                << "  " << this->LocalP2[2]<< "\n";
+
+  os << indent << "Pose Points:" << "\n";
+  os << indent << "  Pose P1: "<< this->PoseP1[0]
+                                << "  " << this->PoseP1[1]
+                                << "  " << this->PoseP1[2]<< "\n";
+  os << indent << "  Pose P2: "<< this->PoseP2[0]
+                                << "  " << this->PoseP2[1]
+                                << "  " << this->PoseP2[2]<< "\n";
+
+  os << indent << "Tranforms:" << "\n";
+  os << indent << "  Orientation: "<< this->Orientation[0]
+                                << "  " << this->Orientation[1]
+                                << "  " << this->Orientation[2]
+                                << "  " << this->Orientation[3]<< "\n";
+  os << indent << "  PoseTransform: "<< this->PoseTransform[0]
+                                << "  " << this->PoseTransform[1]
+                                << "  " << this->PoseTransform[2]
+                                << "  " << this->PoseTransform[3]<< "\n";
+  os << indent << "  OldPoseTransform: "<< this->OldPoseTransform[0]
+                                << "  " << this->OldPoseTransform[1]
+                                << "  " << this->OldPoseTransform[2]
+                                << "  " << this->OldPoseTransform[3]<< "\n";
+
+  os << indent << "Roll: "<< this->Roll << "\n";
+
+  os << indent << "Debug:" << "\n";
+  os << indent << "  Debug Axes: "<< this->DebugAxes << "\n";
+  os << indent << "  Debug Axes Size: "<< this->DebugAxesSize << "\n";
 }
