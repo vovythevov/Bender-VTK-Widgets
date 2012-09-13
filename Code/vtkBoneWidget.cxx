@@ -346,6 +346,7 @@ void vtkBoneWidget::SetPoint1WorldPosition(double p1[3])
       std::cerr<<"Cannot Set Point1 Position in Pose Mode."
                <<"Point 1 is assumed never to move. Use Rest Mode for this."
                <<std::endl<<"-> Doing Nothing"<<std::endl;
+      break;
       }
     default:
       {
@@ -414,6 +415,7 @@ void vtkBoneWidget::SetPoint2WorldPosition(double p2[3])
       this->RebuildDebugAxes();
 
       this->InvokeEvent(vtkBoneWidget::PoseChangedEvent, NULL);
+      break;
       }
     default:
       {
