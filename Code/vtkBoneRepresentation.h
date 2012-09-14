@@ -24,6 +24,7 @@
 #define __vtkBoneRepresentation_h
 
 #include "vtkWidgetRepresentation.h"
+#include "vtkBoneWidgetHeader.h"
 
 class vtkActor;
 class vtkPolyDataMapper;
@@ -39,7 +40,7 @@ class vtkVectorText;
 class vtkPolyDataMapper;
 class vtkCellPicker;
 
-class VTK_WIDGETS_EXPORT vtkBoneRepresentation : public vtkWidgetRepresentation
+class VTK_BONEWIDGETS_EXPORT vtkBoneRepresentation : public vtkWidgetRepresentation
 {
 public:
   // Description:

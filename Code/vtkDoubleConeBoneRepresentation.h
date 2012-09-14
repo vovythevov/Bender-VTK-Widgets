@@ -24,6 +24,7 @@
 // Cone1's base on point 1 and cone2's base on point2
 
 #include "vtkBoneRepresentation.h"
+#include "vtkBoneWidgetHeader.h"
 
 class vtkActor;
 class vtkAppendPolyData;
@@ -33,7 +34,7 @@ class vtkProperty;
 class vtkPolyData;
 class vtkTubeFilter;
 
-class VTK_WIDGETS_EXPORT vtkDoubleConeBoneRepresentation : public vtkBoneRepresentation
+class VTK_BONEWIDGETS_EXPORT vtkDoubleConeBoneRepresentation : public vtkBoneRepresentation
 {
 public:
 

@@ -27,6 +27,7 @@
 // In a parent's frame, x is always along the line, from point 1 to point 2
 
 #include "vtkAbstractWidget.h"
+#include "vtkBoneWidgetHeader.h"
 
 #include "vtkCommand.h"
 
@@ -39,7 +40,7 @@ class vtkLineWidget2;
 class vtkPolyDataMapper;
 class vtkTransform;
 
-class VTK_WIDGETS_EXPORT vtkBoneWidget : public vtkAbstractWidget
+class VTK_BONEWIDGETS_EXPORT vtkBoneWidget : public vtkAbstractWidget
 {
 public:
   // Description:

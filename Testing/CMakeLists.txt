@@ -11,7 +11,7 @@ create_test_sourcelist (BoneWidgetTest_Sources
                         )                       
 
 add_executable (vtkBoneWidgetTests ${BoneWidgetTest_Sources})
-target_link_libraries(vtkBoneWidgetTests ${VTK_LIBRARIES} BoneWidget_Libraries)
+target_link_libraries(vtkBoneWidgetTests ${VTK_LIBRARIES} vtkBoneWidget)
 
 add_test(vtkBoneWidgetRepresentationAndIntercationTest ${CXX_TEST_PATH}/BoneWidgetTests vtkBoneWidgetRepresentationAndIntercationTest)
 

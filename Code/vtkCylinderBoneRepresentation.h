@@ -22,6 +22,7 @@
 #define __vtkCylinderBoneRepresentation_h
 
 #include "vtkBoneRepresentation.h"
+#include "vtkBoneWidgetHeader.h"
 
 class vtkActor;
 class vtkPolyDataMapper;
@@ -29,7 +30,7 @@ class vtkProperty;
 class vtkPolyData;
 class vtkTubeFilter;
 
-class VTK_WIDGETS_EXPORT vtkCylinderBoneRepresentation : public vtkBoneRepresentation
+class VTK_BONEWIDGETS_EXPORT vtkCylinderBoneRepresentation : public vtkBoneRepresentation
 {
 public:
 

@@ -43,8 +43,6 @@
 
 vtkStandardNewMacro(vtkBoneRepresentation);
 
-vtkCxxSetObjectMacro(vtkBoneRepresentation,HandleRepresentation,vtkPointHandleRepresentation3D);
-
 //----------------------------------------------------------------------------
 vtkBoneRepresentation::vtkBoneRepresentation()
 {
