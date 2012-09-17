@@ -63,9 +63,6 @@ class ThreeBonesTestKeyPressInteractorStyle : public vtkInteractorStyleTrackball
       if (key == "Control_L")
         {
         int widgetState = this->Widget->GetWidgetState();
-        //std::cout<<"WidgetState: "<<widgetState <<" (Rest = "
-        //  <<vtkBoneWidget::Rest<<", Pose = "
-        //  <<vtkBoneWidget::Pose<<")"<<std::endl;
 
         if ( widgetState == vtkBoneWidget::Rest )
           {
@@ -83,7 +80,7 @@ class ThreeBonesTestKeyPressInteractorStyle : public vtkInteractorStyleTrackball
           }
 
         }
-      /*else if (key == "Tab"
+    else if (key == "r")
         {
         vtkWidgetRepresentation* rep = Widget->GetRepresentation();
 
@@ -91,42 +88,65 @@ class ThreeBonesTestKeyPressInteractorStyle : public vtkInteractorStyleTrackball
             {
             vtkSmartPointer<vtkDoubleConeBoneRepresentation> simsIconRep = 
               vtkSmartPointer<vtkDoubleConeBoneRepresentation>::New();
-            simsIconRep->SetNumberOfSides(10);
+            simsIconRep->SetNumberOfSides(4);
             simsIconRep->SetRatio(0.2);
             simsIconRep->SetCapping(1);
+            simsIconRep->GetConesProperty()->SetOpacity(0.7);
             Widget->SetRepresentation(simsIconRep);
+            Widget->GetvtkBoneRepresentation()->GetLineProperty()->SetColor(0.0, 0.0, 1.0);
+
+           vtkSmartPointer<vtkDoubleConeBoneRepresentation> middleSonSimsIconRep = 
+              vtkSmartPointer<vtkDoubleConeBoneRepresentation>::New();
+            middleSonSimsIconRep->SetNumberOfSides(4);
+            middleSonSimsIconRep->SetRatio(0.2);
+            middleSonSimsIconRep->SetCapping(1);
+            middleSonSimsIconRep->GetConesProperty()->SetOpacity(0.7);
+            MiddleSonWidget->SetRepresentation(middleSonSimsIconRep);
+
+            vtkSmartPointer<vtkDoubleConeBoneRepresentation> sonSimsIconRep = 
+              vtkSmartPointer<vtkDoubleConeBoneRepresentation>::New();
+            sonSimsIconRep->SetNumberOfSides(4);
+            sonSimsIconRep->SetRatio(0.2);
+            sonSimsIconRep->SetCapping(1);
+            sonSimsIconRep->GetConesProperty()->SetOpacity(0.7);
+            SonWidget->SetRepresentation(sonSimsIconRep);
             }
         else if (vtkDoubleConeBoneRepresentation::SafeDownCast(rep)) // switch to line
           {
           vtkSmartPointer<vtkBoneRepresentation> lineRep = 
               vtkSmartPointer<vtkBoneRepresentation>::New();
           Widget->SetRepresentation(lineRep);
+          Widget->GetvtkBoneRepresentation()->GetLineProperty()->SetColor(0.0, 0.0, 1.0);
+
+          vtkSmartPointer<vtkBoneRepresentation> middleSonLineRep = 
+              vtkSmartPointer<vtkBoneRepresentation>::New();
+          MiddleSonWidget->SetRepresentation(middleSonLineRep);
+
+          vtkSmartPointer<vtkBoneRepresentation> sonLineRep = 
+              vtkSmartPointer<vtkBoneRepresentation>::New();
+          SonWidget->SetRepresentation(sonLineRep);
           }
         else if (vtkBoneRepresentation::SafeDownCast(rep))
           {
           vtkSmartPointer<vtkCylinderBoneRepresentation> cylinderRep = 
             vtkSmartPointer<vtkCylinderBoneRepresentation>::New();
           cylinderRep->SetNumberOfSides(10);
+          cylinderRep->GetCylinderProperty()->SetOpacity(0.7);
           Widget->SetRepresentation(cylinderRep);
+          Widget->GetvtkBoneRepresentation()->GetLineProperty()->SetColor(0.0, 0.0, 1.0);
+
+          vtkSmartPointer<vtkCylinderBoneRepresentation> middleSonCylinderRep = 
+            vtkSmartPointer<vtkCylinderBoneRepresentation>::New();
+          middleSonCylinderRep->SetNumberOfSides(10);
+          middleSonCylinderRep->GetCylinderProperty()->SetOpacity(0.7);
+          MiddleSonWidget->SetRepresentation(middleSonCylinderRep);
+
+          vtkSmartPointer<vtkCylinderBoneRepresentation> sonCylinderRep = 
+            vtkSmartPointer<vtkCylinderBoneRepresentation>::New();
+          sonCylinderRep->SetNumberOfSides(10);
+          sonCylinderRep->GetCylinderProperty()->SetOpacity(0.7);
+          SonWidget->SetRepresentation(sonCylinderRep);
           }
-        }*/
-      else if (key == "p")
-        {
-        double axis[3];
-        double angle = vtkBoneWidget::QuaternionToAxisAngle(
-           this->MiddleSonWidget->GetOrientation(), axis);
-
-        std::cout<<"MiddleSonWidget Orientation:"<<std::endl;
-        std::cout<<"  Theta:          "<<vtkMath::DegreesFromRadians(angle)<<std::endl;
-        std::cout<<"  Rotation Axis:  "<<axis[0]<<" "
-          <<axis[1]<<" "<<axis[2]<<std::endl;
-
-        angle = vtkBoneWidget::QuaternionToAxisAngle(
-           this->MiddleSonWidget->GetPoseTransform(), axis);
-        std::cout<<"MiddleSonWidget Pose Transfotm:"<<std::endl;
-        std::cout<<"  Theta:          "<<vtkMath::DegreesFromRadians(angle)<<std::endl;
-        std::cout<<"  Rotation Axis:  "<<axis[0]<<" "
-          <<axis[1]<<" "<<axis[2]<<std::endl;
         }
       else if (key == "Tab")
         {
@@ -158,6 +178,12 @@ vtkStandardNewMacro(ThreeBonesTestKeyPressInteractorStyle);
 
 int vtkBoneWidgetThreeBonesTest(int, char *[])
 {
+  std::cout<<"Commands: "
+    <<"Tab: Switch debug state"<<std::endl
+    <<"Control_L: Switch Rest/Pose mode"<<std::endl
+    <<"l: link/unlink bone"<<std::endl
+    <<"r: change representation"<<std::endl;
+
   // A renderer and render window
   vtkSmartPointer<vtkRenderer> renderer = 
     vtkSmartPointer<vtkRenderer>::New();
@@ -248,8 +274,7 @@ int vtkBoneWidgetThreeBonesTest(int, char *[])
   middleSonBoneWidget->On();
   sonBoneWidget->On();
 
-
-  box->On();
+  //box->On();
 
   // Begin mouse interaction
   renderWindowInteractor->Start();

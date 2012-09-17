@@ -58,7 +58,7 @@ class TwoBonesTestKeyPressInteractorStyle : public vtkInteractorStyleTrackballCa
       {
       vtkRenderWindowInteractor *rwi = this->Interactor;
       std::string key = rwi->GetKeySym();
-      std::cout<<"Key Pressed: "<<key<<std::endl;
+      //std::cout<<"Key Pressed: "<<key<<std::endl;
 
       if (key == "Control_L")
         {
@@ -95,6 +95,56 @@ class TwoBonesTestKeyPressInteractorStyle : public vtkInteractorStyleTrackballCa
         SonWidget->SetP1LinkedToParent(
          ! SonWidget->GetP1LinkedToParent() );
         }
+      else if (key == "r")
+        {
+        vtkWidgetRepresentation* rep = Widget->GetRepresentation();
+
+        if (vtkCylinderBoneRepresentation::SafeDownCast(rep)) // switch to double cone
+            {
+            vtkSmartPointer<vtkDoubleConeBoneRepresentation> simsIconRep = 
+              vtkSmartPointer<vtkDoubleConeBoneRepresentation>::New();
+            simsIconRep->SetNumberOfSides(4);
+            simsIconRep->SetRatio(0.2);
+            simsIconRep->SetCapping(1);
+            simsIconRep->GetConesProperty()->SetOpacity(0.7);
+            Widget->SetRepresentation(simsIconRep);
+            Widget->GetvtkBoneRepresentation()->GetLineProperty()->SetColor(0.0, 0.0, 1.0);
+
+           vtkSmartPointer<vtkDoubleConeBoneRepresentation> sonSimsIconRep = 
+              vtkSmartPointer<vtkDoubleConeBoneRepresentation>::New();
+            sonSimsIconRep->SetNumberOfSides(4);
+            sonSimsIconRep->SetRatio(0.2);
+            sonSimsIconRep->SetCapping(1);
+            sonSimsIconRep->GetConesProperty()->SetOpacity(0.7);
+            SonWidget->SetRepresentation(sonSimsIconRep);
+            }
+        else if (vtkDoubleConeBoneRepresentation::SafeDownCast(rep)) // switch to line
+          {
+          vtkSmartPointer<vtkBoneRepresentation> lineRep = 
+              vtkSmartPointer<vtkBoneRepresentation>::New();
+          Widget->SetRepresentation(lineRep);
+          Widget->GetvtkBoneRepresentation()->GetLineProperty()->SetColor(0.0, 0.0, 1.0);
+
+          vtkSmartPointer<vtkBoneRepresentation> sonLineRep = 
+              vtkSmartPointer<vtkBoneRepresentation>::New();
+          SonWidget->SetRepresentation(sonLineRep);
+          }
+        else if (vtkBoneRepresentation::SafeDownCast(rep))
+          {
+          vtkSmartPointer<vtkCylinderBoneRepresentation> cylinderRep = 
+            vtkSmartPointer<vtkCylinderBoneRepresentation>::New();
+          cylinderRep->SetNumberOfSides(10);
+          cylinderRep->GetCylinderProperty()->SetOpacity(0.7);
+          Widget->SetRepresentation(cylinderRep);
+          Widget->GetvtkBoneRepresentation()->GetLineProperty()->SetColor(0.0, 0.0, 1.0);
+
+          vtkSmartPointer<vtkCylinderBoneRepresentation> sonCylinderRep = 
+            vtkSmartPointer<vtkCylinderBoneRepresentation>::New();
+          sonCylinderRep->SetNumberOfSides(10);
+          sonCylinderRep->GetCylinderProperty()->SetOpacity(0.7);
+          SonWidget->SetRepresentation(sonCylinderRep);
+          }
+        }
       }
 
     vtkBoneWidget* Widget;
@@ -105,6 +155,13 @@ vtkStandardNewMacro(TwoBonesTestKeyPressInteractorStyle);
 
 int vtkBoneWidgetTwoBonesTest(int, char *[])
 {
+
+  std::cout<<"Commands: "
+    <<"Tab: Switch debug state"<<std::endl
+    <<"Control_L: Switch Rest/Pose mode"<<std::endl
+    <<"l: link/unlink bone"<<std::endl
+    <<"r: change representation"<<std::endl;
+
   // A renderer and render window
   vtkSmartPointer<vtkRenderer> renderer = 
     vtkSmartPointer<vtkRenderer>::New();
@@ -136,127 +193,10 @@ int vtkBoneWidgetTwoBonesTest(int, char *[])
   fatherBoneWidget->CreateDefaultRepresentation();
 
   fatherBoneWidget->GetvtkBoneRepresentation()->GetLineProperty()->SetColor(0.5, 0.5, 0.5);
-  fatherBoneWidget->GetvtkBoneRepresentation()->GetPoint1Representation()->GetProperty()->SetColor(0.0, 1.0, 1.0);
-  fatherBoneWidget->GetvtkBoneRepresentation()->GetPoint2Representation()->GetProperty()->SetColor(0.0, 0.0, 1.0);
   fatherBoneWidget->SetWidgetStateToRest();
 
-  //Test orientation matrix
-  double axis[3], expectedAngle, expectedAxis[3], angle;
-
-  //Test Z Axis
-  fatherBoneWidget->SetPoint1WorldPosition(0.0, 0.0, 0.0);
-  fatherBoneWidget->SetPoint2WorldPosition(0.0, 0.0, 0.1);
-  expectedAngle = vtkMath::Pi() / 2.0;
-  expectedAxis[0] = 1.0; expectedAxis[1] = 0.0; expectedAxis[2] = 0.0;
-
-  angle = vtkBoneWidget::QuaternionToAxisAngle(fatherBoneWidget->GetOrientation(), axis);
-  if (fabs(angle - expectedAngle) > 0.0001)
-    {
-    std::cout<<"Angle different !"<<std::endl
-      <<"Expected "<< expectedAngle <<" - Got "<< angle <<std::endl;
-    //return EXIT_FAILURE;
-    }
-  for (int i =0; i < 3; ++i)
-    {
-    if (fabs(expectedAxis[i] - axis[i]) > 0.0001)
-      {
-      std::cout<<"Axis Different different !"<<std::endl
-        <<"Expected:  "<<expectedAxis[0]<<" "
-                      <<expectedAxis[1]<<" "
-                      <<expectedAxis[2]<<std::endl
-        <<" - Got:    "<<axis[0]<<" "
-                      <<axis[1]<<" "
-                      <<axis[2]<<std::endl;
-      //return EXIT_FAILURE;
-      }
-    }
-
-  //Test Y Axis
-  //std::cout<<"Father, along Y"<<std::endl;
-  fatherBoneWidget->SetPoint1WorldPosition(0.0, 0.0, 0.0);
-  fatherBoneWidget->SetPoint2WorldPosition(0.0, 0.1, 0.0);
-  expectedAngle = 0.0;
-  expectedAxis[0] = 1.0; expectedAxis[1] = 0.0; expectedAxis[2] = 0.0;
-
-  angle = vtkBoneWidget::QuaternionToAxisAngle(fatherBoneWidget->GetOrientation(), axis);
-  if (fabs(angle - expectedAngle) > 0.0001)
-    {
-    std::cout<<"Angle different !"<<std::endl
-      <<"Expected "<< expectedAngle <<" - Got "<< angle <<std::endl;
-    //return EXIT_FAILURE;
-    }
-  for (int i =0; i < 3; ++i)
-    {
-    if (fabs(expectedAxis[i] - axis[i]) > 0.0001)
-      {
-      std::cout<<"Axis Different different !"<<std::endl
-        <<"Expected:  "<<expectedAxis[0]<<" "
-                      <<expectedAxis[1]<<" "
-                      <<expectedAxis[2]<<std::endl
-        <<" - Got:    "<<axis[0]<<" "
-                      <<axis[1]<<" "
-                      <<axis[2]<<std::endl;
-      //return EXIT_FAILURE;
-      }
-    }
-    
-  //Test X Axis
-  //std::cout<<"Father, along X"<<std::endl;
-  fatherBoneWidget->SetPoint2WorldPosition(0.1, 0.0, 0.0);
-  expectedAngle = vtkMath::Pi() / 2.0;
-  expectedAxis[0] = 0.0; expectedAxis[1] = 0.0; expectedAxis[2] = -1.0;
-
-  angle = vtkBoneWidget::QuaternionToAxisAngle(fatherBoneWidget->GetOrientation(), axis);
-  if (fabs(angle - expectedAngle) > 0.0001)
-    {
-    std::cout<<"Angle different !"<<std::endl
-      <<"Expected "<< expectedAngle <<" - Got "<< angle <<std::endl;
-    //return EXIT_FAILURE;
-    }
-  for (int i =0; i < 3; ++i)
-    {
-    if (fabs(expectedAxis[i] - axis[i]) > 0.0001)
-      {
-      std::cout<<"Axis Different different !"<<std::endl
-        <<"Expected:  "<<expectedAxis[0]<<" "
-                      <<expectedAxis[1]<<" "
-                      <<expectedAxis[2]<<std::endl
-        <<" - Got:    "<<axis[0]<<" "
-                      <<axis[1]<<" "
-                      <<axis[2]<<std::endl;
-      //return EXIT_FAILURE;
-      }
-    }
-
-  //Test Weirder Axis
-  //std::cout<<"Father, along weirder axis"<<std::endl;
-  fatherBoneWidget->SetPoint2WorldPosition(0.1, 0.1, 0.1);
-  expectedAngle = 0.955317;
-  expectedAxis[0] = sqrt(2.0)/2.0; expectedAxis[1] = 0.0; expectedAxis[2] = -sqrt(2.0)/2.0;
-
-  angle = vtkBoneWidget::QuaternionToAxisAngle(fatherBoneWidget->GetOrientation(), axis);
-  if (fabs(angle - expectedAngle) > 0.0001)
-    {
-    std::cout<<"Angle different !"<<std::endl
-      <<"Expected "<< expectedAngle <<" - Got "<< angle <<std::endl;
-    //return EXIT_FAILURE;
-    }
-  for (int i =0; i < 3; ++i)
-    {
-    if (fabs(expectedAxis[i] - axis[i]) > 0.0001)
-      {
-      std::cout<<"Axis Different different !"<<std::endl
-        <<"Expected:  "<<expectedAxis[0]<<" "
-                      <<expectedAxis[1]<<" "
-                      <<expectedAxis[2]<<std::endl
-        <<" - Got:    "<<axis[0]<<" "
-                      <<axis[1]<<" "
-                      <<axis[2]<<std::endl;
-      //return EXIT_FAILURE;
-      }
-    }
-
   //Reset Father position
+  fatherBoneWidget->SetPoint1WorldPosition(0.0, 0.0, 0.0);
   fatherBoneWidget->SetPoint2WorldPosition(0.1, 0.0, 0.0);
 
   vtkSmartPointer<vtkBoneWidget> sonBoneWidget = 
@@ -268,35 +208,6 @@ int vtkBoneWidgetTwoBonesTest(int, char *[])
   sonBoneWidget->SetPoint1WorldPosition(0.2, 0.0, -0.1);
   sonBoneWidget->SetPoint2WorldPosition(0.2, 0.0, -0.2);
   sonBoneWidget->SetBoneParent(fatherBoneWidget);
-  sonBoneWidget->GetvtkBoneRepresentation()->GetPoint1Representation()->GetProperty()->SetColor(0.0, 1.0, 1.0);
-  sonBoneWidget->GetvtkBoneRepresentation()->GetPoint2Representation()->GetProperty()->SetColor(0.0, 0.0, 1.0);
-
-  //Test son
-  //Orientation
-  expectedAngle = vtkMath::Pi() / 2.0;
-  expectedAxis[0] = 1.0; expectedAxis[1] = 0.0; expectedAxis[2] = 0.0;
-
-  angle = vtkBoneWidget::QuaternionToAxisAngle(sonBoneWidget->GetOrientation(), axis);
-  if (fabs(angle - expectedAngle) > 0.0001)
-    {
-    std::cout<<"Angle different !"<<std::endl
-      <<"Expected "<< expectedAngle <<" - Got "<< angle <<std::endl;
-    //return EXIT_FAILURE;
-    }
-  for (int i =0; i < 3; ++i)
-    {
-    if (fabs(expectedAxis[i] - axis[i]) > 0.0001)
-      {
-      std::cout<<"Axis Different different !"<<std::endl
-        <<"Expected:  "<<expectedAxis[0]<<" "
-                      <<expectedAxis[1]<<" "
-                      <<expectedAxis[2]<<std::endl
-        <<" - Got:    "<<axis[0]<<" "
-                      <<axis[1]<<" "
-                      <<axis[2]<<std::endl;
-      //return EXIT_FAILURE;
-      }
-    }
 
   //Setup callbacks
   vtkSmartPointer<TwoBonesTestKeyPressInteractorStyle> fatherStyle = 
@@ -304,10 +215,6 @@ int vtkBoneWidgetTwoBonesTest(int, char *[])
   renderWindowInteractor->SetInteractorStyle(fatherStyle);
   fatherStyle->Widget = fatherBoneWidget;
   fatherStyle->SonWidget = sonBoneWidget;
-  //fatherStyle->X = X;
-  //fatherStyle->Y = Y;
-  //fatherStyle->Z = Z;
-  //fatherStyle->TestLine = TestLine;
   fatherStyle->SetCurrentRenderer(renderer);
 
   vtkSmartPointer<vtkAxesActor> axes = 
@@ -330,7 +237,7 @@ int vtkBoneWidgetTwoBonesTest(int, char *[])
   //Z->On();
   //TestLine->On();
 
-  box->On();
+  //box->On();
 
   // Begin mouse interaction
   renderWindowInteractor->Start();
