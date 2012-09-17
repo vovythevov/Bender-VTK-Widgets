@@ -220,10 +220,12 @@ protected:
   //Set the current bone parent.
   vtkBoneWidget*              BoneParent;
   vtkBoneWidgetCallback*      BoneWidgetChildrenCallback;
-  double                      LocalP1[3];
-  double                      LocalP2[3];
-  double                      PoseP1[3];
-  double                      PoseP2[3];
+  double                      LocalRestP1[3];
+  double                      LocalRestP2[3];
+  double                      LocalPoseP1[3];
+  double                      LocalPoseP2[3];
+  double                      TemporaryPoseP1[3];
+  double                      TemporaryPoseP2[3];
   double                      OldPoseTransform[4];
   double                      Roll; // in radians
   double                      Orientation[4];
@@ -237,7 +239,8 @@ protected:
   double                      DebugAxesSize;
 
   void RebuildOrientation();
-  void RebuildLocalPoints();
+  void RebuildLocalRestPoints();
+  void RebuildLocalPosePoints();
   void RebuildPoseTransform();
   void RebuildDebugAxes();
 

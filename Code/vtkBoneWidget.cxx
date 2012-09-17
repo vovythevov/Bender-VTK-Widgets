@@ -179,10 +179,12 @@ vtkBoneWidget::vtkBoneWidget()
   this->WidgetState = vtkBoneWidget::Start;
   
   this->BoneParent = NULL;
-  InitializeVector3(this->LocalP1);
-  InitializeVector3(this->LocalP2);
-  InitializeVector3(this->PoseP1);
-  InitializeVector3(this->PoseP2);
+  InitializeVector3(this->LocalRestP1);
+  InitializeVector3(this->LocalRestP2);
+  InitializeVector3(this->LocalPoseP1);
+  InitializeVector3(this->LocalPoseP2);
+  InitializeVector3(this->TemporaryPoseP1);
+  InitializeVector3(this->TemporaryPoseP2);
 
   this->Roll = 0.0;
 
@@ -335,7 +337,7 @@ void vtkBoneWidget::SetPoint1WorldPosition(double p1[3])
       {
       this->GetvtkBoneRepresentation()->SetPoint1WorldPosition(p1);
       this->RebuildOrientation();
-      this->RebuildLocalPoints();
+      this->RebuildLocalRestPoints();
       this->RebuildDebugAxes();
 
       this->InvokeEvent(vtkBoneWidget::RestChangedEvent, NULL);
@@ -389,7 +391,7 @@ void vtkBoneWidget::SetPoint2WorldPosition(double p2[3])
       {
       this->GetvtkBoneRepresentation()->SetPoint2WorldPosition(p2);
       this->RebuildOrientation();
-      this->RebuildLocalPoints();
+      this->RebuildLocalRestPoints();
       this->RebuildDebugAxes();
 
       this->InvokeEvent(vtkBoneWidget::RestChangedEvent, NULL);
@@ -411,7 +413,7 @@ void vtkBoneWidget::SetPoint2WorldPosition(double p2[3])
       this->GetvtkBoneRepresentation()->SetPoint2WorldPosition(p2);
 
       this->RebuildPoseTransform();
-      this->RebuildLocalPoints();
+      //this->RebuildLocalPoints();
       this->RebuildDebugAxes();
 
       this->InvokeEvent(vtkBoneWidget::PoseChangedEvent, NULL);
@@ -428,6 +430,13 @@ void vtkBoneWidget::SetPoint2WorldPosition(double p2[3])
 //----------------------------------------------------------------------
 void vtkBoneWidget::SetBoneParent(vtkBoneWidget* parent)
 {
+  if (this->WidgetState == vtkBoneWidget::Pose)
+    {
+    std::cerr<<"Cannot define parent bone in pose mode."
+      << std::endl << " ->Doing nothing"<<std::endl;
+    return;
+    }
+
   //std::cout<<"Setting bone Parent"<<std::endl;
   if (this->BoneParent)
     {
@@ -455,12 +464,12 @@ void vtkBoneWidget::SetBoneParent(vtkBoneWidget* parent)
       this->LinkPoint1ToParent();
       }
 
-    this->RebuildLocalPoints();
+    this->RebuildLocalRestPoints();
     }
   else
     {
-    this->GetvtkBoneRepresentation()->GetPoint1WorldPosition(this->LocalP1);
-    this->GetvtkBoneRepresentation()->GetPoint2WorldPosition(this->LocalP2);
+    this->GetvtkBoneRepresentation()->GetPoint1WorldPosition(this->LocalRestP1);
+    this->GetvtkBoneRepresentation()->GetPoint2WorldPosition(this->LocalRestP2);
     }
 }
 
@@ -589,24 +598,13 @@ void vtkBoneWidget::RebuildOrientation()
 }
 
 //----------------------------------------------------------------------
-void vtkBoneWidget::RebuildLocalPoints()
+void vtkBoneWidget::RebuildLocalRestPoints()
 {
   if (this->BoneParent)
     {
-    double quad[4], axis[3], angle, *p1, *p2;
+    double axis[3], angle, *p1, *p2;
 
-    if (this->WidgetState ==vtkBoneWidget::Rest)
-      {
-      this->BoneParent->GetOrientation(quad);
-      }
-    else
-      {
-      MultiplyQuaternion(this->BoneParent->GetPoseTransform(),
-                         this->BoneParent->GetOrientation(),
-                         quad);
-      NormalizeQuaternion(quad);
-      }
-    angle = QuaternionToAxisAngle(quad, axis);
+    angle = QuaternionToAxisAngle(this->BoneParent->GetOrientation(), axis);
     vtkMath::Normalize(axis);
 
     vtkSmartPointer<vtkTransform> T = vtkSmartPointer<vtkTransform>::New();
@@ -616,16 +614,47 @@ void vtkBoneWidget::RebuildLocalPoints()
     T->Inverse();
 
     p1 = T->TransformDoublePoint(this->GetvtkBoneRepresentation()->GetPoint1WorldPosition());
-    CopyVector3(p1, this->LocalP1);
+    CopyVector3(p1, this->LocalRestP1);
 
     p2 = T->TransformDoublePoint(this->GetvtkBoneRepresentation()->GetPoint2WorldPosition());
-    CopyVector3(p2, this->LocalP2);
+    CopyVector3(p2, this->LocalRestP2);
     }
   else
     {
-    this->GetvtkBoneRepresentation()->GetPoint1WorldPosition( this->LocalP1 );
-    this->GetvtkBoneRepresentation()->GetPoint2WorldPosition( this->LocalP2 );
+    this->GetvtkBoneRepresentation()->GetPoint1WorldPosition( this->LocalRestP1 );
+    this->GetvtkBoneRepresentation()->GetPoint2WorldPosition( this->LocalRestP2 );
     }
+}
+
+//----------------------------------------------------------------------
+void vtkBoneWidget::RebuildLocalPosePoints()
+{
+  if (this->BoneParent)
+    {
+    double resultTransform[4], axis[3];
+    MultiplyQuaternion(this->BoneParent->GetPoseTransform(),
+                       this->BoneParent->GetOrientation(),
+                       resultTransform);
+    NormalizeQuaternion(resultTransform);
+    double angle = QuaternionToAxisAngle(resultTransform, axis);
+
+    vtkSmartPointer<vtkTransform> T = vtkSmartPointer<vtkTransform>::New();
+    T->Translate( this->BoneParent->GetvtkBoneRepresentation()->GetPoint2WorldPosition() );
+    T->RotateWXYZ( vtkMath::DegreesFromRadians(angle), axis );
+    T->Inverse();
+
+    double* p1 = T->TransformDoublePoint(this->GetvtkBoneRepresentation()->GetPoint1WorldPosition());
+    CopyVector3(p1, this->LocalPoseP1);
+
+    double* p2 = T->TransformDoublePoint(this->GetvtkBoneRepresentation()->GetPoint2WorldPosition());
+    CopyVector3(p2, this->LocalPoseP2);
+    }
+  else
+    {
+    this->GetvtkBoneRepresentation()->GetPoint1WorldPosition( this->LocalPoseP1 );
+    this->GetvtkBoneRepresentation()->GetPoint2WorldPosition( this->LocalPoseP2 );
+    }
+
 }
 
 //----------------------------------------------------------------------
@@ -796,7 +825,7 @@ void vtkBoneWidget::AddPointAction(vtkAbstractWidget *w)
     self->WidgetRep->SetVisibility(1);
 
     self->RebuildOrientation();
-    self->RebuildLocalPoints();
+    self->RebuildLocalRestPoints();
     self->RebuildDebugAxes();
     }
 
@@ -879,7 +908,7 @@ void vtkBoneWidget::MoveAction(vtkAbstractWidget *w)
       {
       vtkBoneRepresentation::SafeDownCast(self->WidgetRep)->SetPoint1DisplayPosition(e);
       self->RebuildOrientation();
-      self->RebuildLocalPoints();
+      self->RebuildLocalRestPoints();
       self->RebuildDebugAxes();
 
       //self->InvokeEvent(vtkBoneWidget::RestChangedEvent, NULL);
@@ -890,7 +919,7 @@ void vtkBoneWidget::MoveAction(vtkAbstractWidget *w)
       {
       vtkBoneRepresentation::SafeDownCast(self->WidgetRep)->SetPoint2DisplayPosition(e);
       self->RebuildOrientation();
-      self->RebuildLocalPoints();
+      self->RebuildLocalRestPoints();
       self->RebuildDebugAxes();
 
       self->InvokeEvent(vtkBoneWidget::RestChangedEvent, NULL);
@@ -903,7 +932,7 @@ void vtkBoneWidget::MoveAction(vtkAbstractWidget *w)
         ->GetLineHandleRepresentation()->SetDisplayPosition(e);
       vtkBoneRepresentation::SafeDownCast(self->WidgetRep)->WidgetInteraction(e);
       self->RebuildOrientation();
-      self->RebuildLocalPoints();
+      self->RebuildLocalRestPoints();
       self->RebuildDebugAxes();
 
       if (self->P1LinkedToParent && self->BoneParent)
@@ -961,7 +990,7 @@ void vtkBoneWidget::MoveAction(vtkAbstractWidget *w)
       self->GetvtkBoneRepresentation()->SetPoint2WorldPosition(p2);
 
       self->RebuildPoseTransform();
-      self->RebuildLocalPoints();
+      self->RebuildLocalPosePoints();
       self->RebuildDebugAxes();
 
       self->InvokeEvent(vtkBoneWidget::PoseChangedEvent, NULL);
@@ -975,7 +1004,7 @@ void vtkBoneWidget::MoveAction(vtkAbstractWidget *w)
       vtkBoneRepresentation::SafeDownCast(self->WidgetRep)->WidgetInteraction(e);
 
       self->RebuildPoseTransform();
-      self->RebuildLocalPoints();
+      self->RebuildLocalPosePoints();
       self->RebuildDebugAxes();
 
       self->InvokeEvent(vtkBoneWidget::PoseChangedEvent, NULL);
@@ -1033,8 +1062,8 @@ void vtkBoneWidget::BoneParentInteractionStopped()
   CopyQuaternion(this->PoseTransform, this->OldPoseTransform);
 
   //And update the pose point
-  this->GetvtkBoneRepresentation()->GetPoint1WorldPosition(this->PoseP1);
-  this->GetvtkBoneRepresentation()->GetPoint2WorldPosition(this->PoseP2);
+  this->GetvtkBoneRepresentation()->GetPoint1WorldPosition(this->TemporaryPoseP1);
+  this->GetvtkBoneRepresentation()->GetPoint2WorldPosition(this->TemporaryPoseP2);
 
   this->InvokeEvent(vtkBoneWidget::PoseInteractionStoppedEvent, NULL);
 }
@@ -1046,7 +1075,7 @@ void vtkBoneWidget::BoneParentPoseChanged()
 
    if (this->BoneParent)
     {
-    double *newP1, *newP2, axis[3], resultTransform[4];
+    double  axis[3], resultTransform[4];
 
     //1- multiply quaternion
     MultiplyQuaternion(this->BoneParent->GetPoseTransform(),
@@ -1064,10 +1093,10 @@ void vtkBoneWidget::BoneParentPoseChanged()
     T->RotateWXYZ(vtkMath::DegreesFromRadians(angle), axis);
     //T->RotateWXYZ(-1.0*vtkMath::DegreesFromRadians(angle), axis);
 
-    newP1 = T->TransformDoublePoint(this->LocalP1);
+    double* newP1 = T->TransformDoublePoint(this->LocalPoseP1);
     this->GetvtkBoneRepresentation()->SetPoint1WorldPosition(newP1);
 
-    newP2 = T->TransformDoublePoint(this->LocalP2);
+    double* newP2 = T->TransformDoublePoint(this->LocalPoseP2);
     this->GetvtkBoneRepresentation()->SetPoint2WorldPosition(newP2);
 
     this->RebuildPoseTransform();
@@ -1086,9 +1115,9 @@ void vtkBoneWidget::RebuildPoseTransform()
   else
     {
     // Cumulative technique is simple but causes drift :(
-    //That is why we need to recompute each time. 
-    //The old pose transform represents the sum of all the other
-    //previous transformations.
+    // That is why we need to recompute each time.
+    // The old pose transform represents the sum of all the other
+    // previous transformations.
 
     double p1[3], p2[3], previousLineVect[3], newLineVect[3], rotationAxis[3], poseAngle;
     // 1- Get P1, P2, Old P2
@@ -1096,12 +1125,12 @@ void vtkBoneWidget::RebuildPoseTransform()
     this->GetvtkBoneRepresentation()->GetPoint2WorldPosition( p2 );
 
     // 2- Get the previous line directionnal vector
-    vtkMath::Subtract(this->PoseP2, this->PoseP1, previousLineVect);
+    vtkMath::Subtract(this->TemporaryPoseP2, this->TemporaryPoseP1, previousLineVect);
     vtkMath::Normalize(previousLineVect);
 
     // 3- Get the new line vector
     vtkMath::Subtract(p2, p1, newLineVect);
-    vtkMath::Normalize(newLineVect);
+      vtkMath::Normalize(newLineVect);
 
     if (this->GetCurrentRenderer() && this->GetCurrentRenderer()->GetActiveCamera())
       {
@@ -1140,7 +1169,7 @@ void vtkBoneWidget::RebuildPoseTransform()
     double quad[4];
     AxisAngleToQuaternion(rotationAxis, poseAngle, quad);
     NormalizeQuaternion(quad);
-    MultiplyQuaternion(quad, OldPoseTransform, this->PoseTransform);
+    MultiplyQuaternion(quad, this->OldPoseTransform, this->PoseTransform);
     NormalizeQuaternion(this->PoseTransform);
     }
 
@@ -1204,14 +1233,19 @@ void vtkBoneWidget::SetWidgetStateToPose()
   this->BoneSelected = 0;
   this->Point1Selected = 0;
   this->Point2Selected = 0;
-  this->WidgetState = vtkBoneWidget::Pose;
 
-  this->RebuildLocalPoints();
-
+  CopyVector3(this->LocalRestP1, this->LocalPoseP1);
+  CopyVector3(this->LocalRestP2, this->LocalPoseP2);
   InitializeQuaternion(this->OldPoseTransform);
 
-  this->GetvtkBoneRepresentation()->GetPoint1WorldPosition(this->PoseP1);
-  this->GetvtkBoneRepresentation()->GetPoint2WorldPosition(this->PoseP2);
+  this->GetvtkBoneRepresentation()->GetPoint1WorldPosition(this->TemporaryPoseP1);
+  this->GetvtkBoneRepresentation()->GetPoint2WorldPosition(this->TemporaryPoseP2);
+
+  if (this->WidgetState != vtkBoneWidget::Rest)
+    {
+    this->RebuildOrientation();
+    }
+  this->WidgetState = vtkBoneWidget::Pose;
 
   this->RebuildPoseTransform();
   this->RebuildDebugAxes();
@@ -1230,17 +1264,50 @@ void vtkBoneWidget::SetWidgetStateToRest()
 
   InitializeQuaternion(this->PoseTransform);
   InitializeQuaternion(this->OldPoseTransform);
-  InitializeVector3(this->PoseP1);
-  InitializeVector3(this->PoseP2);
-  this->WidgetState = vtkBoneWidget::Rest;
+  InitializeVector3(this->TemporaryPoseP1);
+  InitializeVector3(this->TemporaryPoseP2);
+  InitializeVector3(this->LocalPoseP1);
+  InitializeVector3(this->LocalPoseP2);
 
   if (this->P1LinkedToParent)
     {
     this->LinkPoint1ToParent();
     }
 
-  this->RebuildOrientation();
-  this->RebuildLocalPoints();
+  if (this->WidgetState != vtkBoneWidget::Pose)
+    {
+    this->RebuildOrientation();
+    this->RebuildLocalRestPoints();
+    }
+  else // previous state was pose
+    {
+    //We need to reset the points to their original rest position
+    if (this->BoneParent)
+      {
+      //Reset point to original rest position
+      double axis[3];
+      double angle = QuaternionToAxisAngle(this->BoneParent->GetOrientation(), axis);
+      vtkMath::Normalize(axis);
+
+      vtkSmartPointer<vtkTransform> T = vtkSmartPointer<vtkTransform>::New();
+
+      T->Translate(this->BoneParent->GetvtkBoneRepresentation()->GetPoint2WorldPosition());
+      T->RotateWXYZ(vtkMath::DegreesFromRadians(angle), axis);
+
+      double* newP1 = T->TransformDoublePoint(this->LocalRestP1);
+      this->GetvtkBoneRepresentation()->SetPoint1WorldPosition(newP1);
+
+      double* newP2 = T->TransformDoublePoint(this->LocalRestP2);
+      this->GetvtkBoneRepresentation()->SetPoint2WorldPosition(newP2);
+      }
+    else
+      {
+      this->GetvtkBoneRepresentation()->SetPoint1WorldPosition(this->LocalRestP1);
+      this->GetvtkBoneRepresentation()->SetPoint2WorldPosition(this->LocalRestP2);
+      }
+    }
+
+  this->WidgetState = vtkBoneWidget::Rest;
 
   this->RebuildDebugAxes();
   this->SetEnabled(this->GetEnabled()); // show/hide the handles properly
@@ -1376,7 +1443,7 @@ void vtkBoneWidget::LinkPoint1ToParent()
 void vtkBoneWidget::LinkParentPoint2To(vtkBoneWidget* child)
 {
   // Move this point to snap to given child
-  if (child->GetP1LinkedToParent()) //never to sure
+  if (child->GetP1LinkedToParent()) //never too sure
     //(I could even verify the child's parent is indeed this)
     {
     this->SetPoint2WorldPosition(
@@ -1486,20 +1553,26 @@ void vtkBoneWidget::PrintSelf(ostream& os, vtkIndent indent)
     }
 
   os << indent << "Local Points:" << "\n";
-  os << indent << "  Local P1: "<< this->LocalP1[0]
-                                << "  " << this->LocalP1[1]
-                                << "  " << this->LocalP1[2]<< "\n";
-  os << indent << "  Local P2: "<< this->LocalP2[0]
-                                << "  " << this->LocalP2[1]
-                                << "  " << this->LocalP2[2]<< "\n";
+  os << indent << "  Local Rest P1: "<< this->LocalRestP1[0]
+                                << "  " << this->LocalRestP1[1]
+                                << "  " << this->LocalRestP1[2]<< "\n";
+  os << indent << "  Local Rest P2: "<< this->LocalRestP2[0]
+                                << "  " << this->LocalRestP2[1]
+                                << "  " << this->LocalRestP2[2]<< "\n";
+  os << indent << "  Local Pose P1: "<< this->LocalPoseP1[0]
+                                << "  " << this->LocalPoseP1[1]
+                                << "  " << this->LocalPoseP1[2]<< "\n";
+  os << indent << "  Local Pose P2: "<< this->LocalPoseP2[0]
+                                << "  " << this->LocalPoseP2[1]
+                                << "  " << this->LocalPoseP2[2]<< "\n";
 
-  os << indent << "Pose Points:" << "\n";
-  os << indent << "  Pose P1: "<< this->PoseP1[0]
-                                << "  " << this->PoseP1[1]
-                                << "  " << this->PoseP1[2]<< "\n";
-  os << indent << "  Pose P2: "<< this->PoseP2[0]
-                                << "  " << this->PoseP2[1]
-                                << "  " << this->PoseP2[2]<< "\n";
+  os << indent << "Temporary Points:" << "\n";
+  os << indent << "  Temporary Pose P1: "<< this->TemporaryPoseP1[0]
+                                << "  " << this->TemporaryPoseP1[1]
+                                << "  " << this->TemporaryPoseP1[2]<< "\n";
+  os << indent << "  Temporary Pose P2: "<< this->TemporaryPoseP2[0]
+                                << "  " << this->TemporaryPoseP2[1]
+                                << "  " << this->TemporaryPoseP2[2]<< "\n";
 
   os << indent << "Tranforms:" << "\n";
   os << indent << "  Orientation: "<< this->Orientation[0]
