@@ -266,6 +266,8 @@ vtkBoneWidget::~vtkBoneWidget()
   this->Point2Widget->RemoveObserver(this->BoneWidgetCallback2);
   this->Point2Widget->Delete();
   this->BoneWidgetCallback2->Delete();
+
+  this->BoneWidgetChildrenCallback->Delete();
 }
 
 //----------------------------------------------------------------------
