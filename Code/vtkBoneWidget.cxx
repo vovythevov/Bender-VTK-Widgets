@@ -1340,6 +1340,44 @@ void vtkBoneWidget::SetProcessEvents(int pe)
 }
 
 //----------------------------------------------------------------------
+void vtkBoneWidget::SetWidgetState(int state)
+{
+  switch (state)
+    {
+    case vtkBoneWidget::Start:
+      {
+      this->SetWidgetStateToStart();
+      break;
+      }
+    case vtkBoneWidget::Define:
+      {
+      std::cerr<<"Cannot set state to Define from outside this class"
+        <<std::endl<<" -> Doing nothing."<<std::endl;
+      break;
+      }
+    case vtkBoneWidget::Rest:
+      {
+      this->SetWidgetStateToRest();
+      break;
+      }
+    case vtkBoneWidget::Pose:
+      {
+      this->SetWidgetStateToPose();
+      break;
+      }
+    default:
+      {
+      std::cerr<<"Unknown state. The only possible values are:"
+        <<"    0 <-> Start"<<std::endl
+        <<"    2 <-> Rest"<<std::endl
+        <<"    3 <-> Pose"<<std::endl
+        <<" -> Doing nothing."<<std::endl;
+      break;
+      }
+    }
+}
+
+//----------------------------------------------------------------------
 void vtkBoneWidget::SetWidgetStateToStart()
 {
   //std::cout<<"Set Widget to start"<<std::endl;

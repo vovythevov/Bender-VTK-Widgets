@@ -124,9 +124,20 @@ public:
   static void AxisAngleToQuaternion(double axis[3], double angle, double quad[4]);
 
   // Description:
-  virtual void SetWidgetStateToStart();
-  virtual void SetWidgetStateToRest();
-  virtual void SetWidgetStateToPose();
+  //Set/Get the widget state.
+  //Start Mode:   Define the first point when clicked. Goes then to define mode
+  //Define Mode:  Define the second point when clicked. Goes then to rest mode
+  //Rest Mode:    The bone can be moved and rescaled. If the bone has Children,
+  //              the Children will head will (P1) rescale of they are linked
+  //              (See P1LinkedToParent)
+  //Pose Mode:    The bone can only be rotated. If the bone has Children, the Children
+  //              will rotate accordingly but will stay exactly the same
+  //              (NO rescaling)
+  vtkGetMacro(WidgetState, int);
+  void SetWidgetState(int state);
+  void SetWidgetStateToStart();
+  void SetWidgetStateToRest();
+  void SetWidgetStateToPose();
 
   // Description:
   void SetBoneParent(vtkBoneWidget* parent);
@@ -163,11 +174,6 @@ public:
                    ShowPoseTransformAndOrientation
                   };
   //ETX
-
-  // Description:
-  // Return the current widget state.
-  virtual int GetWidgetState()
-  {return this->WidgetState;}
 
   //Description:
   //Get the transform from world to bone coordinates.
