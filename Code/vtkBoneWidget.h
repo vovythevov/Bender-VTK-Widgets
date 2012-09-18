@@ -75,15 +75,6 @@ public:
   // becomes valid after two of the four points are placed.
   int IsMeasureValid();
 
-  //BTX
-  // Description:
-  // Events.
-  enum
-  {
-  EndWidgetSelectEvent = 10050
-  };
-  //ETX
-
   // Description:
   // Methods to change the whether the widget responds to interaction.
   // Overridden to pass the state to component widgets.
