@@ -115,12 +115,18 @@ public:
   //ETX
 
   //Description
+  //Set/Get the point1 world position
   void SetPoint1WorldPosition(double x, double y, double z);
   void SetPoint1WorldPosition(double p1[3]);
+  void GetPoint1WorldPosition(double p1[3]);
+  double* GetPoint1WorldPosition();
 
   //Description
+  //Set/Get the point2 world position
   void SetPoint2WorldPosition(double x, double y, double z);
   void SetPoint2WorldPosition(double p2[3]);
+  void GetPoint2WorldPosition(double p1[3]);
+  double* GetPoint2WorldPosition();
 
   //Descritpion
   static double QuaternionToAxisAngle(double quad[4], double axis[3]);

@@ -322,6 +322,19 @@ void vtkBoneWidget::CreateDefaultRepresentation()
 
 }
 
+//----------------------------------------------------------------------
+void vtkBoneWidget::GetPoint1WorldPosition(double p1[3])
+{
+  CopyVector3(
+    this->GetvtkBoneRepresentation()->GetPoint1WorldPosition(),
+    p1);
+}
+
+//----------------------------------------------------------------------
+double* vtkBoneWidget::GetPoint1WorldPosition()
+{
+  return this->GetvtkBoneRepresentation()->GetPoint1WorldPosition();
+}
 
 //----------------------------------------------------------------------
 void vtkBoneWidget::SetPoint1WorldPosition(double x, double y, double z)
@@ -375,6 +388,21 @@ void vtkBoneWidget::SetPoint1WorldPosition(double p1[3])
       }
     }
 }
+
+//----------------------------------------------------------------------
+void vtkBoneWidget::GetPoint2WorldPosition(double p2[3])
+{
+  CopyVector3(
+    this->GetvtkBoneRepresentation()->GetPoint2WorldPosition(),
+    p2);
+}
+
+//----------------------------------------------------------------------
+double* vtkBoneWidget::GetPoint2WorldPosition()
+{
+  return this->GetvtkBoneRepresentation()->GetPoint2WorldPosition();
+}
+
 
 //----------------------------------------------------------------------
 void vtkBoneWidget::SetPoint2WorldPosition(double x, double y, double z)
