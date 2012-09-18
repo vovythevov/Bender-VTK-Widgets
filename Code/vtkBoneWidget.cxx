@@ -117,9 +117,6 @@ void CopyVector3(double* vec, double* copyVec)
 }// end namespace
 
 
-// The Bone widget observes the handles.
-// Here we create the command/observer classes to respond to the
-// slider widgets.
 class vtkBoneWidgetCallback : public vtkCommand
 {
 public:
@@ -245,6 +242,8 @@ vtkBoneWidget::vtkBoneWidget()
   this->DebugAxesSize = 0.2;
 
   this->BoneSelected = 0;
+  this->Point1Selected = 0;
+  this->Point2Selected = 0;
 
   this->P1LinkedToParent = 0;
   this->ShowParentage = 0;

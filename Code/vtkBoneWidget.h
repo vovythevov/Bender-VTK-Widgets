@@ -120,6 +120,8 @@ public:
   double* GetPoint2WorldPosition();
 
   //Descritpion
+  //Helper function for conversion quaternion conversion
+  // to and from rotation/axis
   static double QuaternionToAxisAngle(double quad[4], double axis[3]);
   static void AxisAngleToQuaternion(double axis[3], double angle, double quad[4]);
 
@@ -140,14 +142,19 @@ public:
   void SetWidgetStateToPose();
 
   // Description:
+  //Get/Set the bone's parent. If NULL, then the bone is considerer like root
   void SetBoneParent(vtkBoneWidget* parent);
   vtkBoneWidget* GetBoneParent();
 
   //Description
+  //Get/Set the bone's orientation. The orientation is updated in rest mode
+  // and fixed in pose mode. It is undefined in the other modes.
   void GetOrientation (double orientation[4]);
   double* GetOrientation ();
 
-    //Description
+  //Description
+  //Get/Set the bone's pose transform. The pose transform is updated in pose
+  //mode. It is undefined in the other modes.
   void GetPoseTransform (double poseTransform[4]);
   double* GetPoseTransform ();
 
@@ -158,11 +165,19 @@ public:
 
   //Description
   //Set/get if the debug axes are visible or not.
+  //Nothing <-> 0:                          Show nothing
+  //ShowOrientation <-> 1:                  The debug axes will output the
+  //                                        orientation axes
+  //ShowPoseTransform  <-> 2:               The debug axes will output the
+  //                                        pose transform axes
+  //ShowPoseTransformAndOrientation <-> 3:  The debug axes will output the
+  //                                        result of the orientation
+  //                                        and the pose tranform.
   vtkGetMacro(DebugAxes, int);
   void SetDebugAxes (int debugAxes);
 
   // Description:
-  //Nothing:                           Show nothing
+  //Nothing:                          Show nothing
   //ShowOrientation:                  The debug axes will output the orientation axes
   //ShowPoseTransform:                The debug axes will output the pose transform axes
   //ShowPoseTransformAndOrientation:  The debug axes will output the result of the orientation
@@ -225,7 +240,7 @@ protected:
   void StartBoneInteraction();
   virtual void EndBoneInteraction();
 
-  //Set the current bone parent.
+  //Bone widget essentials
   vtkBoneWidget*              BoneParent;
   vtkBoneWidgetCallback*      BoneWidgetChildrenCallback;
   double                      LocalRestP1[3];
@@ -239,16 +254,19 @@ protected:
   double                      Orientation[4];
   double                      PoseTransform[4];
 
+  //For the link between parent and child
   int                         P1LinkedToParent;
   int                         ShowParentage;
   vtkLineWidget2*             ParentageLink;
 
+  //For an easier debug
   int                         DebugAxes;
   vtkLineWidget2*             DebugX;
   vtkLineWidget2*             DebugY;
   vtkLineWidget2*             DebugZ;
   double                      DebugAxesSize;
 
+  //Essentials functions
   void RebuildOrientation();
   void RebuildLocalRestPoints();
   void RebuildLocalPosePoints();
@@ -265,8 +283,6 @@ protected:
   void BoneParentPoseChanged();
   void BoneParentInteractionStopped();
   void BoneParentRestChanged();
-
-  //void BoneParentOrientationChanged();
 
 //BTX
   friend class vtkBoneWidgetCallback;
