@@ -661,7 +661,6 @@ void vtkBoneWidget::RebuildLocalRestPoints()
     vtkSmartPointer<vtkTransform> T = vtkSmartPointer<vtkTransform>::New();
     T->Translate( this->BoneParent->GetvtkBoneRepresentation()->GetPoint2WorldPosition() );
     T->RotateWXYZ( vtkMath::DegreesFromRadians(angle), axis );
-    //T->RotateWXYZ( -1.0*vtkMath::DegreesFromRadians(angle), axis );
     T->Inverse();
 
     p1 = T->TransformDoublePoint(this->GetvtkBoneRepresentation()->GetPoint1WorldPosition());
@@ -715,7 +714,6 @@ void vtkBoneWidget::SetEnabled(int enabling)
   // The handle widgets take their representation from the vtkBoneRepresentation.
   if ( enabling )
     {
-    //Factorized ??
     if ( this->WidgetState == vtkBoneWidget::Start )
       {
       if (this->WidgetRep)
@@ -845,8 +843,6 @@ void vtkBoneWidget::AddPointAction(vtkAbstractWidget *w)
   // If we are placing the first point it's easy
   if ( self->WidgetState == vtkBoneWidget::Start )
     {
-    //std::cout<<"  -> Start Mode Indeed !"<<std::endl;
-
     self->GrabFocus(self->EventCallbackCommand);
     self->WidgetState = vtkBoneWidget::Define;
     self->InvokeEvent(vtkCommand::StartInteractionEvent,NULL);
@@ -867,7 +863,6 @@ void vtkBoneWidget::AddPointAction(vtkAbstractWidget *w)
   // If defining we are placing the second or third point
   else if ( self->WidgetState == vtkBoneWidget::Define )
     {
-    //std::cout<<"  -> Define Mode Indeed !"<<std::endl;
     //Place Point
     self->WidgetState = vtkBoneWidget::Rest;
 
@@ -885,7 +880,6 @@ void vtkBoneWidget::AddPointAction(vtkAbstractWidget *w)
   else if ( self->WidgetState == vtkBoneWidget::Rest 
             || self->WidgetState == vtkBoneWidget::Pose )
     {
-    //std::cout<<"  -> (Rest || Pose) Mode Indeed !"<<std::endl;
     self->BoneSelected = 0;
     self->Point1Selected = 0;
     self->Point2Selected = 0;
@@ -894,21 +888,18 @@ void vtkBoneWidget::AddPointAction(vtkAbstractWidget *w)
     int state = self->WidgetRep->ComputeInteractionState(X,Y,modifier);
     if ( state == vtkBoneRepresentation::Outside )
       {
-      //std::cout<<"  State was outside of the line !"<<std::endl;
       return;
       }
 
     self->GrabFocus(self->EventCallbackCommand);
     if ( state == vtkBoneRepresentation::OnP1 )
       {
-      //std::cout<<"  Point 1 Selected"<<std::endl;
       self->GetvtkBoneRepresentation()->HighlightPoint(0, 1);
       self->Point1Selected = 1;
       self->InvokeEvent(vtkCommand::LeftButtonPressEvent,NULL);
       }
     else if (state == vtkBoneRepresentation::OnP2 )
       {
-      //std::cout<<"  Point 2 Selected"<<std::endl;
       self->GetvtkBoneRepresentation()->HighlightPoint(1, 1);
       self->Point2Selected = 1;
       self->InvokeEvent(vtkCommand::LeftButtonPressEvent,NULL);
@@ -933,16 +924,11 @@ void vtkBoneWidget::AddPointAction(vtkAbstractWidget *w)
 //-------------------------------------------------------------------------
 void vtkBoneWidget::MoveAction(vtkAbstractWidget *w)
 {
-  //std::cout<<"Move Action !"<<std::endl;
-
   vtkBoneWidget *self = vtkBoneWidget::SafeDownCast(w);
-  //std::cout<<"Action mode: "<<self->WidgetState
-  //         <<" (0 = start, 1 = edit, 2 = rest, 3= pose)"<<std::endl;
 
   // Do nothing if outside
   if ( self->WidgetState == vtkBoneWidget::Start )
     {
-    //std::cout<<"  -> Was starting,  Return :("<<std::endl;
     return;
     }
 
@@ -1010,26 +996,6 @@ void vtkBoneWidget::MoveAction(vtkAbstractWidget *w)
     if ( self->Point1Selected )
       {
       //Cannot move P1 in pose mode for now
-      /*// moving outer portion of line -- rotating
-      double p1[3], p2[3], lineVect[3];      
-      double distance = self->GetvtkBoneRepresentation()->GetDistance();
-      self->GetvtkBoneRepresentation()->SetPoint1DisplayPosition(e);
-      
-      self->GetvtkBoneRepresentation()->GetPoint1WorldPosition(p1);
-      self->GetvtkBoneRepresentation()->GetPoint2WorldPosition(p2);
-    
-      vtkMath::Subtract(p1, p2, lineVect);
-      vtkMath::Normalize(lineVect);
-      vtkMath::MultiplyScalar(lineVect, distance);
-      vtkMath::Add(p2, lineVect, p1);
-
-      self->GetvtkBoneRepresentation()->SetPoint1WorldPosition(p1);
-
-      self->RebuildPoseTransform();
-      self->RebuildLocalPoints();
-
-      self->InvokeEvent(vtkBoneWidget::PoseChangedEvent, NULL);
-      self->InvokeEvent(vtkCommand::InteractionEvent,NULL);*/
       }
 
     else if ( self->Point2Selected )
@@ -1146,8 +1112,6 @@ void vtkBoneWidget::MoveAction(vtkAbstractWidget *w)
 //-------------------------------------------------------------------------
 void vtkBoneWidget::EndSelectAction(vtkAbstractWidget *w)
 {
-  //std::cout<<"End Select Action !"<<std::endl;
-
   vtkBoneWidget *self = vtkBoneWidget::SafeDownCast(w);
 
   // Do nothing if outside
@@ -1198,8 +1162,6 @@ void vtkBoneWidget::BoneParentInteractionStopped()
 //-------------------------------------------------------------------------
 void vtkBoneWidget::BoneParentPoseChanged()
 {
-  //std::cout<<"Bone Parent Pose changed"<<std::endl;
-
    if (this->BoneParent)
     {
     double  axis[3], resultTransform[4];
@@ -1218,7 +1180,6 @@ void vtkBoneWidget::BoneParentPoseChanged()
     vtkSmartPointer<vtkTransform> T = vtkSmartPointer<vtkTransform>::New();
     T->Translate(this->BoneParent->GetvtkBoneRepresentation()->GetPoint2WorldPosition());
     T->RotateWXYZ(vtkMath::DegreesFromRadians(angle), axis);
-    //T->RotateWXYZ(-1.0*vtkMath::DegreesFromRadians(angle), axis);
 
     double* newP1 = T->TransformDoublePoint(this->LocalPoseP1);
     this->GetvtkBoneRepresentation()->SetPoint1WorldPosition(newP1);
@@ -1381,7 +1342,6 @@ void vtkBoneWidget::SetWidgetState(int state)
 //----------------------------------------------------------------------
 void vtkBoneWidget::SetWidgetStateToStart()
 {
-  //std::cout<<"Set Widget to start"<<std::endl;
   this->WidgetState = vtkBoneWidget::Start;
   this->BoneSelected = 0;
   this->Point1Selected = 0;
@@ -1396,7 +1356,6 @@ void vtkBoneWidget::SetWidgetStateToStart()
 //----------------------------------------------------------------------
 void vtkBoneWidget::SetWidgetStateToPose()
 {
-  //std::cout<<"Set Widget to Pose"<<std::endl;
   this->BoneSelected = 0;
   this->Point1Selected = 0;
   this->Point2Selected = 0;
@@ -1425,7 +1384,6 @@ void vtkBoneWidget::SetWidgetStateToPose()
 //----------------------------------------------------------------------
 void vtkBoneWidget::SetWidgetStateToRest()
 {
-  //std::cout<<"Set Widget to Rest"<<std::endl;
   this->BoneSelected = 0;
   this->Point1Selected = 0;
   this->Point2Selected = 0;
@@ -1454,12 +1412,14 @@ void vtkBoneWidget::SetWidgetStateToRest()
       {
       //Reset point to original rest position
       double axis[3];
-      double angle = QuaternionToAxisAngle(this->BoneParent->GetOrientation(), axis);
+      double angle = QuaternionToAxisAngle(
+        this->BoneParent->GetOrientation(), axis);
       vtkMath::Normalize(axis);
 
       vtkSmartPointer<vtkTransform> T = vtkSmartPointer<vtkTransform>::New();
 
-      T->Translate(this->BoneParent->GetvtkBoneRepresentation()->GetPoint2WorldPosition());
+      T->Translate(
+        this->BoneParent->GetvtkBoneRepresentation()->GetPoint2WorldPosition());
       T->RotateWXYZ(vtkMath::DegreesFromRadians(angle), axis);
 
       double* newP1 = T->TransformDoublePoint(this->LocalRestP1);
@@ -1533,7 +1493,8 @@ void vtkBoneWidget::RebuildDebugAxes()
            || this->DebugAxes == vtkBoneWidget::ShowPoseTransformAndOrientation)
     {
     double o[3], axis[3], angle;
-    double distance = this->GetvtkBoneRepresentation()->GetDistance() * this->DebugAxesSize;
+    double distance =
+      this->GetvtkBoneRepresentation()->GetDistance() * this->DebugAxesSize;
     this->GetvtkBoneRepresentation()->GetPoint2WorldPosition(o);
       
     if (this->DebugAxes == vtkBoneWidget::ShowOrientation)
