@@ -974,20 +974,81 @@ void vtkBoneWidget::MoveAction(vtkAbstractWidget *w)
 
     else if ( self->Point2Selected )
       {
-      // moving outer portion of line -- rotating
-      double p1[3], p2[3], lineVect[3];
-      double distance = self->GetvtkBoneRepresentation()->GetDistance();
-      self->GetvtkBoneRepresentation()->SetPoint2DisplayPosition(e);
+      //
+      //Make rotation in camera view plane center on p1
+      //
 
+      // Get display positions
+      double e1[2], e2[2];
+      self->GetvtkBoneRepresentation()->GetPoint1DisplayPosition(e1);
+      self->GetvtkBoneRepresentation()->GetPoint2DisplayPosition(e2);
+
+      // Get the current line -> the line between p1 and the event
+      //in display coordinates
+      double currentLine[2], oldLine[2];
+      currentLine[0] = e[0] - e1[0]; currentLine[1] = e[1] - e1[1];
+      vtkMath::Normalize2D(currentLine);
+
+      // Get the old line -> the line between p1 and the LAST event
+      //in display coordinates
+      int lastX = self->Interactor->GetLastEventPosition()[0];
+      int lastY = self->Interactor->GetLastEventPosition()[1];
+      double lastE[2];
+      lastE[0] = static_cast<double>(lastX);
+      lastE[1] = static_cast<double>(lastY);
+      oldLine[0] = lastE[0] - e1[0]; oldLine[1] = lastE[1] - e1[1];
+      vtkMath::Normalize2D(oldLine);
+
+      // Get the angle between those two lines
+      double angle = vtkMath::DegreesFromRadians(
+                       acos(vtkMath::Dot2D(currentLine, oldLine)));
+
+      // Get the world coordinate of the line before anything moves
+      double p1[3], p2[3];
       self->GetvtkBoneRepresentation()->GetPoint1WorldPosition(p1);
       self->GetvtkBoneRepresentation()->GetPoint2WorldPosition(p2);
 
-      vtkMath::Subtract(p2, p1, lineVect);
-      vtkMath::Normalize(lineVect);
-      vtkMath::MultiplyScalar(lineVect, distance);
-      vtkMath::Add(p1, lineVect, p2);
+      //Get the camera vector
+      double cameraVec[3];
+      if (!self->GetCurrentRenderer()
+          || !self->GetCurrentRenderer()->GetActiveCamera())
+        {
+        std::cerr<<"There should be a renderer and a camera."
+                 << " Make sure to set these !"<<std::endl
+                 << "->Cannot move P2 in pose mode"<<std::endl;
+        return;
+        }
+      self->GetCurrentRenderer()->GetActiveCamera()->GetDirectionOfProjection(cameraVec);
 
-      self->GetvtkBoneRepresentation()->SetPoint2WorldPosition(p2);
+      //Need to figure if the rotation is clockwise or counterclowise
+      double spaceCurrentLine[3], spaceOldLine[3];
+      spaceCurrentLine[0] = currentLine[0];
+      spaceCurrentLine[1] = currentLine[1];
+      spaceCurrentLine[2] = 0.0;
+
+      spaceOldLine[0] = oldLine[0];
+      spaceOldLine[1] = oldLine[1];
+      spaceOldLine[2] = 0.0;
+
+      double handenessVec[3];
+      vtkMath::Cross(spaceOldLine, spaceCurrentLine, handenessVec);
+
+      //handeness is oppostie beacuse camera is toward the focal point
+      double handeness = vtkMath::Dot(handenessVec, Z) > 0 ? -1.0: 1.0;
+      angle *= handeness;
+
+      //Finally rotate P2
+      vtkSmartPointer<vtkTransform> T = vtkSmartPointer<vtkTransform>::New();
+      T->Translate(p1); //last transform: Translate back to P1 origin
+      T->RotateWXYZ(angle, cameraVec); //middle transform: rotate
+      //first transform: Translate to world origin
+      double minusP1[3];
+      CopyVector3(p1, minusP1);
+      vtkMath::MultiplyScalar(minusP1, -1.0);
+      T->Translate(minusP1);
+
+      self->GetvtkBoneRepresentation()->SetPoint2WorldPosition(
+        T->TransformDoublePoint(p2));
 
       self->RebuildPoseTransform();
       self->RebuildLocalPosePoints();
