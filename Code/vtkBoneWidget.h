@@ -190,6 +190,11 @@ public:
   vtkGetMacro(P1LinkedToParent, int);
   void SetP1LinkedToParent (int link);
 
+  //Description
+  // Show/Hide the link between a child an its parent
+  vtkGetMacro(ShowParentage, int);
+  void SetShowParentage (int parentage);
+
 protected:
   vtkBoneWidget();
   ~vtkBoneWidget();
@@ -230,7 +235,10 @@ protected:
   double                      Roll; // in radians
   double                      Orientation[4];
   double                      PoseTransform[4];
+
   int                         P1LinkedToParent;
+  int                         ShowParentage;
+  vtkLineWidget2*             ParentageLink;
 
   int                         DebugAxes;
   vtkLineWidget2*             DebugX;
@@ -243,6 +251,7 @@ protected:
   void RebuildLocalPosePoints();
   void RebuildPoseTransform();
   void RebuildDebugAxes();
+  void RebuildParentageLink();
 
   //Move the point p1 to the parent p2
   void LinkPoint1ToParent();

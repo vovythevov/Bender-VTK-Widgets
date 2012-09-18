@@ -95,6 +95,11 @@ class TwoBonesTestKeyPressInteractorStyle : public vtkInteractorStyleTrackballCa
         SonWidget->SetP1LinkedToParent(
          ! SonWidget->GetP1LinkedToParent() );
         }
+      else if (key == "quoteleft")
+        {
+        SonWidget->SetShowParentage(
+          ! SonWidget->GetShowParentage());
+        }
       }
 
     vtkBoneWidget* Widget;

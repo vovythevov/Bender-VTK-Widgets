@@ -245,12 +245,17 @@ vtkBoneWidget::vtkBoneWidget()
   this->DebugAxesSize = 0.2;
 
   this->BoneSelected = 0;
+
   this->P1LinkedToParent = 0;
+  this->ShowParentage = 0;
+  this->ParentageLink = vtkLineWidget2::New();
 }
 
 //----------------------------------------------------------------------
 vtkBoneWidget::~vtkBoneWidget()
 {
+  this->ParentageLink->Delete();
+
   this->DebugX->Delete();
   this->DebugY->Delete();
   this->DebugZ->Delete();
@@ -303,6 +308,18 @@ void vtkBoneWidget::CreateDefaultRepresentation()
   this->DebugZ->SetProcessEvents(0); //So the debug axes aren't interacting
   // vvvv So the axes aren't highlighted vvvv
   vtkLineRepresentation::SafeDownCast(DebugZ->GetRepresentation())->SetRepresentationState(0);
+
+  this->ParentageLink->SetInteractor(this->Interactor);
+  this->ParentageLink->GetRepresentation()->SetRenderer(this->CurrentRenderer);
+  this->ParentageLink->CreateDefaultRepresentation();
+  //make dotted line
+  vtkLineRepresentation::SafeDownCast(ParentageLink->GetRepresentation())
+    ->GetLineProperty()->SetLineStipplePattern(0xf0f0);
+  this->ParentageLink->SetEnabled(1);
+  this->ParentageLink->SetProcessEvents(0); //So the link isn't interacting
+  // vvvv So the link isn't highlighted vvvv
+  vtkLineRepresentation::SafeDownCast(ParentageLink->GetRepresentation())->SetRepresentationState(0);
+
 }
 
 
@@ -339,6 +356,7 @@ void vtkBoneWidget::SetPoint1WorldPosition(double p1[3])
       this->RebuildOrientation();
       this->RebuildLocalRestPoints();
       this->RebuildDebugAxes();
+      this->RebuildParentageLink();
 
       this->InvokeEvent(vtkBoneWidget::RestChangedEvent, NULL);
       break;
@@ -393,6 +411,8 @@ void vtkBoneWidget::SetPoint2WorldPosition(double p2[3])
       this->RebuildOrientation();
       this->RebuildLocalRestPoints();
       this->RebuildDebugAxes();
+      this->RebuildParentageLink();
+
 
       this->InvokeEvent(vtkBoneWidget::RestChangedEvent, NULL);
       break;
@@ -415,6 +435,7 @@ void vtkBoneWidget::SetPoint2WorldPosition(double p2[3])
       this->RebuildPoseTransform();
       //this->RebuildLocalPoints();
       this->RebuildDebugAxes();
+      this->RebuildParentageLink();
 
       this->InvokeEvent(vtkBoneWidget::PoseChangedEvent, NULL);
       break;
@@ -463,6 +484,7 @@ void vtkBoneWidget::SetBoneParent(vtkBoneWidget* parent)
       {
       this->LinkPoint1ToParent();
       }
+    this->RebuildParentageLink();
 
     this->RebuildLocalRestPoints();
     }
@@ -703,6 +725,7 @@ void vtkBoneWidget::SetEnabled(int enabling)
         this->DebugX->SetInteractor(this->Interactor);
         this->DebugY->SetInteractor(this->Interactor);
         this->DebugZ->SetInteractor(this->Interactor);
+        this->ParentageLink->SetInteractor(this->Interactor);
         }
 
       this->Point1Widget->SetEnabled(1);
@@ -827,6 +850,7 @@ void vtkBoneWidget::AddPointAction(vtkAbstractWidget *w)
     self->RebuildOrientation();
     self->RebuildLocalRestPoints();
     self->RebuildDebugAxes();
+    self->RebuildParentageLink();
     }
 
   else if ( self->WidgetState == vtkBoneWidget::Rest 
@@ -914,6 +938,7 @@ void vtkBoneWidget::MoveAction(vtkAbstractWidget *w)
       self->RebuildOrientation();
       self->RebuildLocalRestPoints();
       self->RebuildDebugAxes();
+      self->RebuildParentageLink();
 
       //self->InvokeEvent(vtkBoneWidget::RestChangedEvent, NULL);
       self->InvokeEvent(vtkCommand::InteractionEvent,NULL);
@@ -925,6 +950,7 @@ void vtkBoneWidget::MoveAction(vtkAbstractWidget *w)
       self->RebuildOrientation();
       self->RebuildLocalRestPoints();
       self->RebuildDebugAxes();
+      self->RebuildParentageLink();
 
       self->InvokeEvent(vtkBoneWidget::RestChangedEvent, NULL);
       self->InvokeEvent(vtkCommand::InteractionEvent,NULL);
@@ -938,6 +964,7 @@ void vtkBoneWidget::MoveAction(vtkAbstractWidget *w)
       self->RebuildOrientation();
       self->RebuildLocalRestPoints();
       self->RebuildDebugAxes();
+      self->RebuildParentageLink();
 
       if (self->P1LinkedToParent && self->BoneParent)
         {
@@ -1057,6 +1084,7 @@ void vtkBoneWidget::MoveAction(vtkAbstractWidget *w)
       self->RebuildPoseTransform();
       self->RebuildLocalPosePoints();
       self->RebuildDebugAxes();
+      self->RebuildParentageLink();
 
       self->InvokeEvent(vtkBoneWidget::PoseChangedEvent, NULL);
       self->InvokeEvent(vtkCommand::InteractionEvent,NULL);
@@ -1074,6 +1102,7 @@ void vtkBoneWidget::MoveAction(vtkAbstractWidget *w)
         self->RebuildPoseTransform();
         self->RebuildLocalPosePoints();
         self->RebuildDebugAxes();
+        self->RebuildParentageLink();
 
         self->InvokeEvent(vtkBoneWidget::PoseChangedEvent, NULL);
         self->InvokeEvent(vtkCommand::InteractionEvent,NULL);
@@ -1170,6 +1199,7 @@ void vtkBoneWidget::BoneParentPoseChanged()
 
     this->RebuildPoseTransform();
     this->RebuildDebugAxes();
+    this->RebuildParentageLink();
     this->InvokeEvent(vtkBoneWidget::PoseChangedEvent, NULL);
     }
 }
@@ -1255,6 +1285,7 @@ void vtkBoneWidget::BoneParentRestChanged()
     {
     this->LinkPoint1ToParent();
     }
+  this->RebuildParentageLink();
 }
 
 //----------------------------------------------------------------------
@@ -1318,6 +1349,7 @@ void vtkBoneWidget::SetWidgetStateToPose()
 
   this->RebuildPoseTransform();
   this->RebuildDebugAxes();
+  this->RebuildParentageLink();
 
   this->SetEnabled(this->GetEnabled()); // show/hide the handles properly
   this->ReleaseFocus();
@@ -1379,6 +1411,7 @@ void vtkBoneWidget::SetWidgetStateToRest()
   this->WidgetState = vtkBoneWidget::Rest;
 
   this->RebuildDebugAxes();
+  this->RebuildParentageLink();
   this->SetEnabled(this->GetEnabled()); // show/hide the handles properly
   this->ReleaseFocus();
 }
@@ -1388,6 +1421,28 @@ void vtkBoneWidget::SetDebugAxes(int debugAxes)
 {
   this->DebugAxes = debugAxes;
   this->RebuildDebugAxes();
+}
+
+//----------------------------------------------------------------------
+void vtkBoneWidget::RebuildParentageLink()
+{
+  vtkLineRepresentation* rep=
+      vtkLineRepresentation::SafeDownCast(
+        this->ParentageLink->GetRepresentation());
+
+  if (this->ShowParentage && this->BoneParent && ! this->P1LinkedToParent)
+    {
+    rep->SetVisibility(1);
+
+    rep->SetPoint1WorldPosition(
+      this->BoneParent->GetvtkBoneRepresentation()->GetPoint2WorldPosition());
+    rep->SetPoint2WorldPosition(
+      this->GetvtkBoneRepresentation()->GetPoint1WorldPosition());
+    }
+  else
+    {
+    rep->SetVisibility(0);
+    }
 }
 
 //----------------------------------------------------------------------
@@ -1518,6 +1573,13 @@ void vtkBoneWidget::LinkParentPoint2To(vtkBoneWidget* child)
     this->SetPoint2WorldPosition(
       child->GetvtkBoneRepresentation()->GetPoint1WorldPosition());
     }
+}
+
+//----------------------------------------------------------------------
+void vtkBoneWidget::SetShowParentage(int parentage)
+{
+  this->ShowParentage = parentage;
+  this->RebuildParentageLink();
 }
 
 //----------------------------------------------------------------------
