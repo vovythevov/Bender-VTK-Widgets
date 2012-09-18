@@ -1720,7 +1720,10 @@ void vtkBoneWidget::PrintSelf(ostream& os, vtkIndent indent)
                                 << "  " << this->OldPoseTransform[3]<< "\n";
 
   os << indent << "Roll: "<< this->Roll << "\n";
-  os << indent << "P1LinkToParent: "<< this->P1LinkedToParent << "\n";
+
+  os << indent << "Parent link: "<< "\n";
+  os << indent << "  P1LinkToParent: "<< this->P1LinkedToParent << "\n";
+  os << indent << "  ShowParentage: "<< this->ShowParentage << "\n";
 
   os << indent << "Debug:" << "\n";
   os << indent << "  Debug Axes: "<< this->DebugAxes << "\n";
