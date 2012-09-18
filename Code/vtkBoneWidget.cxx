@@ -862,10 +862,14 @@ void vtkBoneWidget::AddPointAction(vtkAbstractWidget *w)
       }
     else if ( state == vtkBoneRepresentation::OnLine)
       {
-      self->GetvtkBoneRepresentation()->HighlightLine(1);
-      self->BoneSelected = 1;
-      self->WidgetRep->StartWidgetInteraction(e);
-      self->InvokeEvent(vtkCommand::LeftButtonPressEvent,NULL);
+      if (self->WidgetState == vtkBoneWidget::Rest
+          || !self->BoneParent)
+        {
+        self->GetvtkBoneRepresentation()->HighlightLine(1);
+        self->BoneSelected = 1;
+        self->WidgetRep->StartWidgetInteraction(e);
+        self->InvokeEvent(vtkCommand::LeftButtonPressEvent,NULL);
+        }
       }
     }
 
@@ -1059,17 +1063,21 @@ void vtkBoneWidget::MoveAction(vtkAbstractWidget *w)
       }
     else if ( self->BoneSelected )
       {
-      // moving outer portion of line -- rotating
-      vtkBoneRepresentation::SafeDownCast(self->WidgetRep)
-        ->GetLineHandleRepresentation()->SetDisplayPosition(e);
-      vtkBoneRepresentation::SafeDownCast(self->WidgetRep)->WidgetInteraction(e);
+      if (!self->BoneParent) //shouldn't be necessary since the
+                             //sorting is done in AddAction but just in case
+        {
+        // moving outer portion of line -- rotating
+        vtkBoneRepresentation::SafeDownCast(self->WidgetRep)
+          ->GetLineHandleRepresentation()->SetDisplayPosition(e);
+        vtkBoneRepresentation::SafeDownCast(self->WidgetRep)->WidgetInteraction(e);
 
-      self->RebuildPoseTransform();
-      self->RebuildLocalPosePoints();
-      self->RebuildDebugAxes();
+        self->RebuildPoseTransform();
+        self->RebuildLocalPosePoints();
+        self->RebuildDebugAxes();
 
-      self->InvokeEvent(vtkBoneWidget::PoseChangedEvent, NULL);
-      self->InvokeEvent(vtkCommand::InteractionEvent,NULL);
+        self->InvokeEvent(vtkBoneWidget::PoseChangedEvent, NULL);
+        self->InvokeEvent(vtkCommand::InteractionEvent,NULL);
+        }
       }
     }
 
