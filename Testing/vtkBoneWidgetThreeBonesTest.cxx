@@ -188,9 +188,9 @@ int vtkBoneWidgetThreeBonesTest(int, char *[])
   fatherBoneWidget->SetCurrentRenderer(renderer);
   fatherBoneWidget->CreateDefaultRepresentation();
 
-  fatherBoneWidget->GetvtkBoneRepresentation()->GetLineProperty()->SetColor(1.0, 0.0, 0.0);
-  fatherBoneWidget->GetvtkBoneRepresentation()->GetPoint1Representation()->GetProperty()->SetColor(0.0, 1.0, 1.0);
-  fatherBoneWidget->GetvtkBoneRepresentation()->GetPoint2Representation()->GetProperty()->SetColor(0.0, 0.0, 1.0);
+  fatherBoneWidget->GetBoneRepresentation()->GetLineProperty()->SetColor(1.0, 0.0, 0.0);
+  fatherBoneWidget->GetBoneRepresentation()->GetPoint1Representation()->GetProperty()->SetColor(0.0, 1.0, 1.0);
+  fatherBoneWidget->GetBoneRepresentation()->GetPoint2Representation()->GetProperty()->SetColor(0.0, 0.0, 1.0);
   fatherBoneWidget->SetWidgetStateToRest();
 
   //Reset Father position
@@ -206,8 +206,8 @@ int vtkBoneWidgetThreeBonesTest(int, char *[])
   middleSonBoneWidget->SetPoint1WorldPosition(0.0, 0.2, 0.0);
   middleSonBoneWidget->SetPoint2WorldPosition(0.1, 0.2, 0.0);
   middleSonBoneWidget->SetBoneParent(fatherBoneWidget);
-  middleSonBoneWidget->GetvtkBoneRepresentation()->GetPoint1Representation()->GetProperty()->SetColor(0.0, 1.0, 1.0);
-  middleSonBoneWidget->GetvtkBoneRepresentation()->GetPoint2Representation()->GetProperty()->SetColor(0.0, 0.0, 1.0);
+  middleSonBoneWidget->GetBoneRepresentation()->GetPoint1Representation()->GetProperty()->SetColor(0.0, 1.0, 1.0);
+  middleSonBoneWidget->GetBoneRepresentation()->GetPoint2Representation()->GetProperty()->SetColor(0.0, 0.0, 1.0);
 
   vtkSmartPointer<vtkBoneWidget> sonBoneWidget = 
     vtkSmartPointer<vtkBoneWidget>::New();
@@ -218,8 +218,8 @@ int vtkBoneWidgetThreeBonesTest(int, char *[])
   sonBoneWidget->SetPoint1WorldPosition(0.1, 0.3, 0.0);
   sonBoneWidget->SetPoint2WorldPosition(0.1, 0.4, 0.0);
   sonBoneWidget->SetBoneParent(middleSonBoneWidget);
-  sonBoneWidget->GetvtkBoneRepresentation()->GetPoint1Representation()->GetProperty()->SetColor(0.0, 1.0, 1.0);
-  sonBoneWidget->GetvtkBoneRepresentation()->GetPoint2Representation()->GetProperty()->SetColor(0.0, 0.0, 1.0);
+  sonBoneWidget->GetBoneRepresentation()->GetPoint1Representation()->GetProperty()->SetColor(0.0, 1.0, 1.0);
+  sonBoneWidget->GetBoneRepresentation()->GetPoint2Representation()->GetProperty()->SetColor(0.0, 0.0, 1.0);
 
   //Setup callbacks
   vtkSmartPointer<ThreeBonesTestKeyPressInteractorStyle> style = 

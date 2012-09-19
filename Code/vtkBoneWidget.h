@@ -64,8 +64,7 @@ public:
 
   // Description:
   // Return the representation as a vtkBoneRepresentation.
-  vtkBoneRepresentation* GetvtkBoneRepresentation()
-    {return reinterpret_cast<vtkBoneRepresentation*>(this->WidgetRep);}
+  vtkBoneRepresentation* GetBoneRepresentation();
 
   // Description:
   // Create the default widget representation (vtkBoneRepresentation) if no one is set.

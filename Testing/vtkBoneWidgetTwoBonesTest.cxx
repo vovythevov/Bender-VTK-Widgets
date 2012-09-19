@@ -140,9 +140,9 @@ int vtkBoneWidgetTwoBonesTest(int, char *[])
   fatherBoneWidget->SetCurrentRenderer(renderer);
   fatherBoneWidget->CreateDefaultRepresentation();
 
-  fatherBoneWidget->GetvtkBoneRepresentation()->GetLineProperty()->SetColor(0.5, 0.5, 0.5);
-  fatherBoneWidget->GetvtkBoneRepresentation()->GetPoint1Representation()->GetProperty()->SetColor(0.0, 1.0, 1.0);
-  fatherBoneWidget->GetvtkBoneRepresentation()->GetPoint2Representation()->GetProperty()->SetColor(0.0, 0.0, 1.0);
+  fatherBoneWidget->GetBoneRepresentation()->GetLineProperty()->SetColor(0.5, 0.5, 0.5);
+  fatherBoneWidget->GetBoneRepresentation()->GetPoint1Representation()->GetProperty()->SetColor(0.0, 1.0, 1.0);
+  fatherBoneWidget->GetBoneRepresentation()->GetPoint2Representation()->GetProperty()->SetColor(0.0, 0.0, 1.0);
   fatherBoneWidget->SetWidgetStateToRest();
 
   //Test orientation matrix
@@ -273,8 +273,8 @@ int vtkBoneWidgetTwoBonesTest(int, char *[])
   sonBoneWidget->SetPoint1WorldPosition(0.2, 0.0, -0.1);
   sonBoneWidget->SetPoint2WorldPosition(0.2, 0.0, -0.2);
   sonBoneWidget->SetBoneParent(fatherBoneWidget);
-  sonBoneWidget->GetvtkBoneRepresentation()->GetPoint1Representation()->GetProperty()->SetColor(0.0, 1.0, 1.0);
-  sonBoneWidget->GetvtkBoneRepresentation()->GetPoint2Representation()->GetProperty()->SetColor(0.0, 0.0, 1.0);
+  sonBoneWidget->GetBoneRepresentation()->GetPoint1Representation()->GetProperty()->SetColor(0.0, 1.0, 1.0);
+  sonBoneWidget->GetBoneRepresentation()->GetPoint2Representation()->GetProperty()->SetColor(0.0, 0.0, 1.0);
 
   //Test son
   //Orientation
