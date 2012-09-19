@@ -67,7 +67,15 @@ vtkDoubleConeBoneRepresentation::vtkDoubleConeBoneRepresentation()
 
 //----------------------------------------------------------------------------
 vtkDoubleConeBoneRepresentation::~vtkDoubleConeBoneRepresentation()
-{  
+{
+  if (this->ConesProperty)
+    {
+    this->ConesProperty->Delete();
+    }
+
+  this->Cone1->Delete();
+  this->Cone2->Delete();
+
   this->GlueFilter->Delete();
   this->ConesActor->Delete();
   this->ConesMapper->Delete();
@@ -152,18 +160,11 @@ double *vtkDoubleConeBoneRepresentation::GetBounds()
 //----------------------------------------------------------------------------
 void vtkDoubleConeBoneRepresentation::CreateDefaultProperties()
 {
-  this->Superclass::CreateDefaultProperties();
-  
   // Cones properties
   this->ConesProperty = vtkProperty::New();
   this->ConesProperty->SetAmbient(1.0);
   this->ConesProperty->SetAmbientColor(1.0,1.0,1.0);
   //this->ConesProperty->SetOpacity(0.3);
-
-  /*this->SelectedConeProperty = vtkProperty::New();
-  this->SelectedConeProperty->SetAmbient(1.0);
-  this->SelectedConeProperty->SetAmbientColor(0.0,1.0,0.0);
-  this->SelectedConeProperty->SetOpacity(0.3);*/
 }
 
 //----------------------------------------------------------------------------

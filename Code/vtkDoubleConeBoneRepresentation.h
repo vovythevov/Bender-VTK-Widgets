@@ -103,11 +103,11 @@ protected:
   vtkPolyDataMapper* ConesMapper;
   vtkConeSource*     Cone1;
   vtkConeSource*     Cone2;
+  vtkAppendPolyData* GlueFilter;
 
   // Properties used to control the appearance of selected objects and
   // the manipulator in general.
   vtkProperty* ConesProperty;
-  //vtkProperty* SelectedCylinderProperty;
   void         CreateDefaultProperties();
 
   // Ivars used during widget interaction to hold initial positions
@@ -119,7 +119,6 @@ protected:
   double Ratio;
   int    Capping;
 
-  vtkAppendPolyData* GlueFilter;
   void GlueCones();
   void RebuildCones();
 
