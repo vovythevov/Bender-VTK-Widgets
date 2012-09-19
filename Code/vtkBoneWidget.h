@@ -239,19 +239,19 @@ protected:
   //Bone widget essentials
   vtkBoneWidget*              BoneParent;
   vtkBoneWidgetCallback*      BoneWidgetChildrenCallback;
-  double                      LocalRestP1[3];
-  double                      LocalRestP2[3];
-  double                      LocalPoseP1[3];
-  double                      LocalPoseP2[3];
-  double                      TemporaryPoseP1[3];
-  double                      TemporaryPoseP2[3];
+  double                      LocalRestHead[3];
+  double                      LocalRestTail[3];
+  double                      LocalPoseHead[3];
+  double                      LocalPoseTail[3];
+  double                      TemporaryPoseHead[3];
+  double                      TemporaryPoseTail[3];
   double                      OldPoseTransform[4];
   double                      Roll; // in radians
   double                      Orientation[4];
   double                      PoseTransform[4];
 
   //For the link between parent and child
-  int                         P1LinkedToParent;
+  int                         HeadLinkedToParent;
   int                         ShowParentage;
   vtkLineWidget2*             ParentageLink;
 
@@ -270,10 +270,12 @@ protected:
   void RebuildDebugAxes();
   void RebuildParentageLink();
 
-  //Move the point p1 to the parent p2
-  void LinkPoint1ToParent();
-  //Mmove this P2 to the child's P1. Used for translations.
-  void LinkParentPoint2To(vtkBoneWidget* child);
+  // Description:
+  // Move the point Head to the parent Tail
+  void LinkHeadToParent();
+  // Description:
+  // Move this Tail to the child's Head. Used for translations.
+  void LinkTailToChild(vtkBoneWidget* child);
 
   //Function called upon Parent events
   void BoneParentPoseChanged();
