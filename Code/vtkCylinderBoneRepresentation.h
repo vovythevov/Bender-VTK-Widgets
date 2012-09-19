@@ -51,7 +51,7 @@ public:
   virtual void SetPoint2WorldPosition(double pos[3]);
 
   // Description:
-  void GetPolyData(vtkPolyData *pd);
+  virtual void GetPolyData(vtkPolyData *pd);
 
   // Description:
   // These are methods that satisfy vtkWidgetRepresentation's API.

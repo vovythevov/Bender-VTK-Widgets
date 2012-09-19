@@ -55,7 +55,7 @@ public:
   virtual void SetPoint2WorldPosition(double pos[3]);
 
   // Description:
-  void GetPolyData(vtkPolyData *pd);
+  virtual void GetPolyData(vtkPolyData *pd);
 
   // Description:
   // These are methods that satisfy vtkWidgetRepresentation's API.
@@ -77,14 +77,13 @@ public:
 
   // Description:
   // Minimum 3
-  void SetNumberOfSides(int numberOFSides);
+  void SetNumberOfSides(int numberOfSides);
   vtkGetMacro(NumberOfSides, int);
 
   // Description:
   // Get the cylinder properties. The properties of the cones when selected
   // and unselected can be manipulated.
   vtkGetObjectMacro(ConesProperty,vtkProperty);
-  //vtkGetObjectMacro(SelectedCone1Property,vtkProperty);
 
   // Description:
   // Methods supporting the rendering process.
