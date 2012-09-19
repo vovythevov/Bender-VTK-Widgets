@@ -92,8 +92,8 @@ class TwoBonesTestKeyPressInteractorStyle : public vtkInteractorStyleTrackballCa
         }
       else if (key == "l")
         {
-        SonWidget->SetP1LinkedToParent(
-         ! SonWidget->GetP1LinkedToParent() );
+        SonWidget->SetHeadLinkedToParent(
+         ! SonWidget->GetHeadLinkedToParent() );
         }
       else if (key == "quoteleft")
         {

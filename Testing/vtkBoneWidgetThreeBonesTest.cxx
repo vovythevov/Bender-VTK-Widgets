@@ -142,10 +142,10 @@ class ThreeBonesTestKeyPressInteractorStyle : public vtkInteractorStyleTrackball
         }
       else if (key == "l")
         {
-        MiddleSonWidget->SetP1LinkedToParent(
-         ! MiddleSonWidget->GetP1LinkedToParent() );
-        SonWidget->SetP1LinkedToParent(
-         ! SonWidget->GetP1LinkedToParent() );
+        MiddleSonWidget->SetHeadLinkedToParent(
+         ! MiddleSonWidget->GetHeadLinkedToParent() );
+        SonWidget->SetHeadLinkedToParent(
+         ! SonWidget->GetHeadLinkedToParent() );
         }
       }
 
