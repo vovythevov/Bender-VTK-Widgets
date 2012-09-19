@@ -26,8 +26,8 @@
 
 class vtkActor;
 class vtkPolyDataMapper;
-class vtkProperty;
 class vtkPolyData;
+class vtkProperty;
 class vtkTubeFilter;
 
 class VTK_BONEWIDGETS_EXPORT vtkCylinderBoneRepresentation : public vtkBoneRepresentation
@@ -96,9 +96,6 @@ protected:
   // the manipulator in general.
   vtkProperty* CylinderProperty;
   void         CreateDefaultProperties();
-
-  // Ivars used during widget interaction to hold initial positions
-  double StartCylinderHandle[3];
 
   //Cylinder properties
   double Radius;
