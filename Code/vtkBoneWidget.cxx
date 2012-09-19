@@ -357,9 +357,9 @@ void vtkBoneWidget::SetPoint1WorldPosition(double head[3])
     {
     case vtkBoneWidget::Start:
       {
-      std::cerr<<"Cannot Set Point1 Position in Start Mode. "
-               <<"Use Rest Mode for this."
-               <<std::endl<<"-> Doing Nothing"<<std::endl;
+      vtkErrorMacro("Cannot Set Point1 Position in Start Mode. "
+                    "Use Rest Mode for this."
+                    "\n-> Doing Nothing");
       break;
       }
     case vtkBoneWidget::Define:
@@ -380,14 +380,14 @@ void vtkBoneWidget::SetPoint1WorldPosition(double head[3])
       }
     case vtkBoneWidget::Pose:
       {
-      std::cerr<<"Cannot Set Point1 Position in Pose Mode."
-               <<"Point 1 is assumed never to move. Use Rest Mode for this."
-               <<std::endl<<"-> Doing Nothing"<<std::endl;
+      vtkErrorMacro("Cannot Set Point1 Position in Pose Mode."
+                    "Point 1 is assumed never to move. Use Rest Mode for this."
+                    "\n-> Doing Nothing");
       break;
       }
     default:
       {
-      std::cerr<<"Widget is in an unknown mode. Cannot set Point1"<<std::endl;
+      vtkErrorMacro("Widget is in an unknown mode. Cannot set Point1");
       break;
       }
     }
@@ -425,16 +425,16 @@ void vtkBoneWidget::SetPoint2WorldPosition(double tail[3])
     {
     case vtkBoneWidget::Start:
       {
-      std::cerr<<"Cannot Set Point2 Position in Start Mode. "
-               <<"Use Rest Mode for this."
-               <<std::endl<<"-> Doing Nothing"<<std::endl;
+      vtkErrorMacro("Cannot Set Point2 Position in Start Mode. "
+                    "Use Rest Mode for this."
+                    "\n-> Doing Nothing");
       break;
       }
     case vtkBoneWidget::Define:
       {
-      std::cerr<<"Cannot Set Point2 Position in Define Mode. "
-               <<"Use Rest Mode for this."
-               <<std::endl<<"-> Doing Nothing"<<std::endl;
+      vtkErrorMacro("Cannot Set Point2 Position in Define Mode. "
+                    "Use Rest Mode for this."
+                    "\n-> Doing Nothing");
       break;
       }
     case vtkBoneWidget::Rest:
@@ -474,7 +474,7 @@ void vtkBoneWidget::SetPoint2WorldPosition(double tail[3])
       }
     default:
       {
-      std::cerr<<"Widget is in an unknown mode. Cannot set Point2"<<std::endl;
+      vtkErrorMacro("Widget is in an unknown mode. Cannot set Point2");
       break;
       }
     }
@@ -485,8 +485,8 @@ void vtkBoneWidget::SetBoneParent(vtkBoneWidget* parent)
 {
   if (this->WidgetState == vtkBoneWidget::Pose)
     {
-    std::cerr<<"Cannot define parent bone in pose mode."
-      << std::endl << " ->Doing nothing"<<std::endl;
+    vtkErrorMacro("Cannot define parent bone in pose mode."
+                  "\n ->Doing nothing");
     return;
     }
 
@@ -579,8 +579,8 @@ void vtkBoneWidget::RebuildOrientation()
   // invalid points (not far enough apart)
   if (vtkMath::Normalize(viewOut) < 0.000001)
     {
-    std::cerr<<"Tail and Head are not enough apart,"
-                " could not rebuild orientation"<<std::endl;
+    vtkErrorMacro("Tail and Head are not enough apart,"
+                  " could not rebuild orientation");
     InitializeQuaternion(this->Orientation);
     return;
     }
@@ -621,9 +621,8 @@ void vtkBoneWidget::RebuildOrientation()
 
       if (upMagnitude < 0.0000001)
         {
-        std::cerr<<"Could not fin a vector perpendiculare to the bone,"
-                    " check the bone value(s)."
-                    " This should not be happening."<<std::endl;
+        vtkErrorMacro("Could not fin a vector perpendiculare to the bone,"
+                      " check the bone values. This should not be happening.");
         return;
         }
       }
@@ -1037,9 +1036,9 @@ void vtkBoneWidget::MoveAction(vtkAbstractWidget *w)
       if (!self->GetCurrentRenderer()
           || !self->GetCurrentRenderer()->GetActiveCamera())
         {
-        std::cerr<<"There should be a renderer and a camera."
-                 << " Make sure to set these !"<<std::endl
-                 << "->Cannot move Tail in pose mode"<<std::endl;
+        vtkErrorWithObjectMacro(self, "There should be a renderer and a camera."
+                                      " Make sure to set these !"
+                                      "\n ->Cannot move Tail in pose mode");
         return;
         }
       self->GetCurrentRenderer()->GetActiveCamera()->GetDirectionOfProjection(cameraVec);
@@ -1316,8 +1315,8 @@ void vtkBoneWidget::SetWidgetState(int state)
       }
     case vtkBoneWidget::Define:
       {
-      std::cerr<<"Cannot set state to Define from outside this class"
-        <<std::endl<<" -> Doing nothing."<<std::endl;
+      vtkErrorMacro("Cannot set state to Define from outside this class"
+                    "\n -> Doing nothing.");
       break;
       }
     case vtkBoneWidget::Rest:
@@ -1332,11 +1331,11 @@ void vtkBoneWidget::SetWidgetState(int state)
       }
     default:
       {
-      std::cerr<<"Unknown state. The only possible values are:"
-        <<"    0 <-> Start"<<std::endl
-        <<"    2 <-> Rest"<<std::endl
-        <<"    3 <-> Pose"<<std::endl
-        <<" -> Doing nothing."<<std::endl;
+      vtkErrorMacro("Unknown state. The only possible values are:"
+                   "\n    0 <-> Start"
+                   "\n    2 <-> Rest"
+                   "\n    3 <-> Pose"
+                   "\n -> Doing nothing.");
       break;
       }
     }
@@ -1561,7 +1560,7 @@ void vtkBoneWidget::RebuildDebugAxes()
     }
   else
     {
-    std::cerr<<"Unknow value for DebugAxes. ->Doing nothing."<<std::endl;
+    vtkErrorMacro("Unknow value for DebugAxes. ->Doing nothing.");
     }
 }
 
@@ -1601,8 +1600,8 @@ void vtkBoneWidget::LinkHeadToParent()
     }
   else
     {
-    std::cerr<<"Cannot link Head to a non-existing parent."
-                " Set the bone parent before. ->Doing nothing."<<std::endl;
+    vtkErrorMacro("Cannot link Head to a non-existing parent."
+                  " Set the bone parent before. ->Doing nothing.");
     return;
     }
 }
