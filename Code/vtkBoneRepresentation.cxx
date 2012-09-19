@@ -17,29 +17,29 @@
   limitations under the License.
 
 =========================================================================*/
+
 #include "vtkBoneRepresentation.h"
-#include "vtkPointHandleRepresentation3D.h"
-#include "vtkActor.h"
-#include "vtkCamera.h"
-#include "vtkLineSource.h"
-#include "vtkSphereSource.h"
-#include "vtkPolyDataMapper.h"
-#include "vtkPolyData.h"
-#include "vtkCallbackCommand.h"
-#include "vtkBox.h"
-#include "vtkPolyData.h"
-#include "vtkProperty.h"
-#include "vtkRenderWindowInteractor.h"
-#include "vtkRenderer.h"
-#include "vtkInteractorObserver.h"
-#include "vtkMath.h"
-#include "vtkLine.h"
-#include "vtkWindow.h"
-#include "vtkObjectFactory.h"
-#include "vtkVectorText.h"
-#include "vtkFollower.h"
-#include "vtkCellPicker.h"
-#include "vtkPolyDataMapper.h"
+
+#include <vtkActor.h>
+#include <vtkBox.h>
+#include <vtkCallbackCommand.h>
+#include <vtkCamera.h>
+#include <vtkCellPicker.h>
+#include <vtkFollower.h>
+#include <vtkInteractorObserver.h>
+#include <vtkLine.h>
+#include <vtkLineSource.h>
+#include <vtkMath.h>
+#include <vtkObjectFactory.h>
+#include <vtkPointHandleRepresentation3D.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkPolyData.h>
+#include <vtkProperty.h>
+#include <vtkSphereSource.h>
+#include <vtkRenderer.h>
+#include <vtkRenderWindowInteractor.h>
+#include <vtkVectorText.h>
+#include <vtkWindow.h>
 
 vtkStandardNewMacro(vtkBoneRepresentation);
 

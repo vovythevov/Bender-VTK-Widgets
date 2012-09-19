@@ -27,18 +27,17 @@
 #include "vtkBoneWidgetHeader.h"
 
 class vtkActor;
-class vtkPolyDataMapper;
+class vtkBox;
+class vtkCellPicker;
+class vtkFollower;
 class vtkLineSource;
 class vtkSphereSource;
-class vtkProperty;
 class vtkPolyData;
 class vtkPolyDataAlgorithm;
-class vtkPointHandleRepresentation3D;
-class vtkBox;
-class vtkFollower;
-class vtkVectorText;
 class vtkPolyDataMapper;
-class vtkCellPicker;
+class vtkPointHandleRepresentation3D;
+class vtkProperty;
+class vtkVectorText;
 
 class VTK_BONEWIDGETS_EXPORT vtkBoneRepresentation : public vtkWidgetRepresentation
 {
