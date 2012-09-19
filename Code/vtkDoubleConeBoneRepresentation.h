@@ -28,10 +28,10 @@
 
 class vtkActor;
 class vtkAppendPolyData;
-class vtkPolyDataMapper;
 class vtkConeSource;
-class vtkProperty;
+class vtkPolyDataMapper;
 class vtkPolyData;
+class vtkProperty;
 class vtkTubeFilter;
 
 class VTK_BONEWIDGETS_EXPORT vtkDoubleConeBoneRepresentation : public vtkBoneRepresentation
@@ -109,9 +109,6 @@ protected:
   // the manipulator in general.
   vtkProperty* ConesProperty;
   void         CreateDefaultProperties();
-
-  // Ivars used during widget interaction to hold initial positions
-  double StartCylinderHandle[3];
 
   //Cone properties
   double Radius;

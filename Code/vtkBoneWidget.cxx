@@ -20,6 +20,7 @@
 
 #include "vtkBoneWidget.h"
 
+//My includes
 #include "vtkBoneRepresentation.h"
 
 //VTK Includes
@@ -45,6 +46,7 @@
 
 vtkStandardNewMacro(vtkBoneWidget);
 
+//Static declaration of the world coordinates
 static const double X[3] = {1.0, 0.0, 0.0};
 static const double Y[3] = {0.0, 1.0, 0.0};
 static const double Z[3] = {0.0, 0.0, 1.0};
@@ -221,6 +223,7 @@ vtkBoneWidget::vtkBoneWidget()
   this->Point2Widget->AddObserver(vtkCommand::EndInteractionEvent, this->BoneWidgetCallback2,
                                   this->Priority);
 
+  // Set up the callbacks for the children
   this->BoneWidgetChildrenCallback = vtkBoneWidgetCallback::New();
   this->BoneWidgetChildrenCallback->BoneWidget = this;
 
@@ -235,16 +238,19 @@ vtkBoneWidget::vtkBoneWidget()
                                           vtkWidgetEvent::EndSelect,
                                           this, vtkBoneWidget::EndSelectAction);
 
+  //Debug axes init
   this->DebugAxes = vtkBoneWidget::Nothing;
   this->DebugX = vtkLineWidget2::New();
   this->DebugY = vtkLineWidget2::New();
   this->DebugZ = vtkLineWidget2::New();
   this->DebugAxesSize = 0.2;
 
+  //Widget interaction init
   this->BoneSelected = 0;
   this->Point1Selected = 0;
   this->Point2Selected = 0;
 
+  //parentage link init
   this->P1LinkedToParent = 0;
   this->ShowParentage = 0;
   this->ParentageLink = vtkLineWidget2::New();
@@ -490,7 +496,6 @@ void vtkBoneWidget::SetBoneParent(vtkBoneWidget* parent)
     return;
     }
 
-  //std::cout<<"Setting bone Parent"<<std::endl;
   if (this->BoneParent)
     {
     this->BoneParent->RemoveObserver(vtkBoneWidget::RestChangedEvent);
@@ -684,6 +689,7 @@ void vtkBoneWidget::RebuildLocalPosePoints()
 {
   if (this->BoneParent)
     {
+    //Get final rotation /axis transform
     double resultTransform[4], axis[3];
     MultiplyQuaternion(this->BoneParent->GetPoseTransform(),
                        this->BoneParent->GetOrientation(),
@@ -691,11 +697,13 @@ void vtkBoneWidget::RebuildLocalPosePoints()
     NormalizeQuaternion(resultTransform);
     double angle = QuaternionToAxisAngle(resultTransform, axis);
 
+    //Make transform
     vtkSmartPointer<vtkTransform> T = vtkSmartPointer<vtkTransform>::New();
     T->Translate( this->BoneParent->GetvtkBoneRepresentation()->GetPoint2WorldPosition() );
     T->RotateWXYZ( vtkMath::DegreesFromRadians(angle), axis );
     T->Inverse();
 
+    //Transform points
     double* p1 = T->TransformDoublePoint(this->GetvtkBoneRepresentation()->GetPoint1WorldPosition());
     CopyVector3(p1, this->LocalPoseP1);
 
@@ -996,12 +1004,9 @@ void vtkBoneWidget::MoveAction(vtkAbstractWidget *w)
 
   else if (self->WidgetState == vtkBoneWidget::Pose)
     {
-    if ( self->Point1Selected )
-      {
-      //Cannot move P1 in pose mode for now
-      }
+    //Cannot move P1 in pose mode
 
-    else if ( self->Point2Selected )
+    if ( self->Point2Selected )
       {
       //
       //Make rotation in camera view plane center on p1
