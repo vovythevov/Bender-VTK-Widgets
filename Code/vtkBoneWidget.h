@@ -96,9 +96,9 @@ public:
   // PoseInteractionStoppedEvent:  Fired when the interaction is stopped for
   //                               the children of the bone
   //BTX
-  enum BoneWidgetEvent {RestChangedEvent = vtkCommand::UserEvent + 1,
-                        PoseChangedEvent,
-                        PoseInteractionStoppedEvent};
+  enum BoneWidgetEventType {RestChangedEvent = vtkCommand::UserEvent + 1,
+                            PoseChangedEvent,
+                            PoseInteractionStoppedEvent};
   //ETX
 
   // Description:
@@ -179,11 +179,11 @@ public:
   //ShowPoseTransformAndOrientation:  The debug axes will output the result of the orientation
   //                                  and the pose tranform.
   //BTX
-  enum _DebugAxes {Nothing = 0,
-                   ShowOrientation,
-                   ShowPoseTransform,
-                   ShowPoseTransformAndOrientation
-                  };
+  enum DebugAxesType {Nothing = 0,
+                      ShowOrientation,
+                      ShowPoseTransform,
+                      ShowPoseTransformAndOrientation
+                      };
   //ETX
 
   // Description:
