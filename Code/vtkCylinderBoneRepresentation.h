@@ -95,7 +95,6 @@ protected:
   // Properties used to control the appearance of selected objects and
   // the manipulator in general.
   vtkProperty* CylinderProperty;
-  vtkProperty* SelectedCylinderProperty;
   void         CreateDefaultProperties();
 
   // Ivars used during widget interaction to hold initial positions
@@ -105,7 +104,6 @@ protected:
   double Radius;
   int    Capping;
   int    NumberOfSides;
-
 
   void RebuildCylinder();
 
