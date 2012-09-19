@@ -61,7 +61,12 @@ vtkCylinderBoneRepresentation::vtkCylinderBoneRepresentation()
 
 //----------------------------------------------------------------------------
 vtkCylinderBoneRepresentation::~vtkCylinderBoneRepresentation()
-{  
+{
+  if (this->CylinderProperty)
+    {
+    this->CylinderProperty->Delete();
+    }
+
   this->CylinderGenerator->Delete();
   this->CylinderActor->Delete();
   this->CylinderMapper->Delete();
@@ -128,18 +133,11 @@ double *vtkCylinderBoneRepresentation::GetBounds()
 //----------------------------------------------------------------------------
 void vtkCylinderBoneRepresentation::CreateDefaultProperties()
 {
-  this->Superclass::CreateDefaultProperties();
-  
   // Cylinder properties
   this->CylinderProperty = vtkProperty::New();
   this->CylinderProperty->SetAmbient(1.0);
   this->CylinderProperty->SetAmbientColor(1.0,1.0,1.0);
   //this->CylinderProperty->SetOpacity(0.3);
-
-  /*this->SelectedCylinderProperty = vtkProperty::New();
-  this->SelectedCylinderProperty->SetAmbient(1.0);
-  this->SelectedCylinderProperty->SetAmbientColor(0.0,1.0,0.0);
-  this->SelectedCylinderProperty->SetOpacity(0.3);*/
 
   this->Capping = 1;
 }
@@ -223,15 +221,6 @@ void vtkCylinderBoneRepresentation::PrintSelf(ostream& os, vtkIndent indent)
   else
     {
     os << indent << "Cylinder Property: (none)\n";
-    }
-  if ( this->SelectedCylinderProperty )
-    {
-    os << indent << "Selected Cylinder Property: "
-       << this->SelectedCylinderProperty << "\n";
-    }
-  else
-    {
-    os << indent << "Selected Cylinder Property: (none)\n";
     }
 
   os << indent << "Number Of Sides: " << this->NumberOfSides << "\n";

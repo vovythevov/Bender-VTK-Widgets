@@ -75,15 +75,6 @@ public:
   // becomes valid after two of the four points are placed.
   int IsMeasureValid();
 
-  //BTX
-  // Description:
-  // Events.
-  enum
-  {
-  EndWidgetSelectEvent = 10050
-  };
-  //ETX
-
   // Description:
   // Methods to change the whether the widget responds to interaction.
   // Overridden to pass the state to component widgets.
@@ -115,31 +106,55 @@ public:
   //ETX
 
   //Description
+  //Set/Get the point1 world position
   void SetPoint1WorldPosition(double x, double y, double z);
   void SetPoint1WorldPosition(double p1[3]);
+  void GetPoint1WorldPosition(double p1[3]);
+  double* GetPoint1WorldPosition();
 
   //Description
+  //Set/Get the point2 world position
   void SetPoint2WorldPosition(double x, double y, double z);
   void SetPoint2WorldPosition(double p2[3]);
+  void GetPoint2WorldPosition(double p1[3]);
+  double* GetPoint2WorldPosition();
 
   //Descritpion
+  //Helper function for conversion quaternion conversion
+  // to and from rotation/axis
   static double QuaternionToAxisAngle(double quad[4], double axis[3]);
   static void AxisAngleToQuaternion(double axis[3], double angle, double quad[4]);
 
   // Description:
-  virtual void SetWidgetStateToStart();
-  virtual void SetWidgetStateToRest();
-  virtual void SetWidgetStateToPose();
+  //Set/Get the widget state.
+  //Start Mode:   Define the first point when clicked. Goes then to define mode
+  //Define Mode:  Define the second point when clicked. Goes then to rest mode
+  //Rest Mode:    The bone can be moved and rescaled. If the bone has Children,
+  //              the Children will head will (P1) rescale of they are linked
+  //              (See P1LinkedToParent)
+  //Pose Mode:    The bone can only be rotated. If the bone has Children, the Children
+  //              will rotate accordingly but will stay exactly the same
+  //              (NO rescaling)
+  vtkGetMacro(WidgetState, int);
+  void SetWidgetState(int state);
+  void SetWidgetStateToStart();
+  void SetWidgetStateToRest();
+  void SetWidgetStateToPose();
 
   // Description:
+  //Get/Set the bone's parent. If NULL, then the bone is considerer like root
   void SetBoneParent(vtkBoneWidget* parent);
   vtkBoneWidget* GetBoneParent();
 
   //Description
+  //Get/Set the bone's orientation. The orientation is updated in rest mode
+  // and fixed in pose mode. It is undefined in the other modes.
   void GetOrientation (double orientation[4]);
   double* GetOrientation ();
 
-    //Description
+  //Description
+  //Get/Set the bone's pose transform. The pose transform is updated in pose
+  //mode. It is undefined in the other modes.
   void GetPoseTransform (double poseTransform[4]);
   double* GetPoseTransform ();
 
@@ -150,11 +165,19 @@ public:
 
   //Description
   //Set/get if the debug axes are visible or not.
+  //Nothing <-> 0:                          Show nothing
+  //ShowOrientation <-> 1:                  The debug axes will output the
+  //                                        orientation axes
+  //ShowPoseTransform  <-> 2:               The debug axes will output the
+  //                                        pose transform axes
+  //ShowPoseTransformAndOrientation <-> 3:  The debug axes will output the
+  //                                        result of the orientation
+  //                                        and the pose tranform.
   vtkGetMacro(DebugAxes, int);
   void SetDebugAxes (int debugAxes);
 
   // Description:
-  //Nothing:                           Show nothing
+  //Nothing:                          Show nothing
   //ShowOrientation:                  The debug axes will output the orientation axes
   //ShowPoseTransform:                The debug axes will output the pose transform axes
   //ShowPoseTransformAndOrientation:  The debug axes will output the result of the orientation
@@ -166,11 +189,6 @@ public:
                    ShowPoseTransformAndOrientation
                   };
   //ETX
-
-  // Description:
-  // Return the current widget state.
-  virtual int GetWidgetState()
-  {return this->WidgetState;}
 
   //Description:
   //Get the transform from world to bone coordinates.
@@ -222,7 +240,7 @@ protected:
   void StartBoneInteraction();
   virtual void EndBoneInteraction();
 
-  //Set the current bone parent.
+  //Bone widget essentials
   vtkBoneWidget*              BoneParent;
   vtkBoneWidgetCallback*      BoneWidgetChildrenCallback;
   double                      LocalRestP1[3];
@@ -236,16 +254,19 @@ protected:
   double                      Orientation[4];
   double                      PoseTransform[4];
 
+  //For the link between parent and child
   int                         P1LinkedToParent;
   int                         ShowParentage;
   vtkLineWidget2*             ParentageLink;
 
+  //For an easier debug
   int                         DebugAxes;
   vtkLineWidget2*             DebugX;
   vtkLineWidget2*             DebugY;
   vtkLineWidget2*             DebugZ;
   double                      DebugAxesSize;
 
+  //Essentials functions
   void RebuildOrientation();
   void RebuildLocalRestPoints();
   void RebuildLocalPosePoints();
@@ -262,8 +283,6 @@ protected:
   void BoneParentPoseChanged();
   void BoneParentInteractionStopped();
   void BoneParentRestChanged();
-
-  //void BoneParentOrientationChanged();
 
 //BTX
   friend class vtkBoneWidgetCallback;
