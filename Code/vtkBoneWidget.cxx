@@ -189,7 +189,7 @@ vtkBoneWidget::vtkBoneWidget()
 
   this->Roll = 0.0;
 
-  InitializeQuaternion(this->Orientation);
+  InitializeQuaternion(this->RestTransform);
   InitializeQuaternion(this->PoseTransform);
 
   // The widgets for moving the end points. They observe this widget (i.e.,
@@ -370,7 +370,7 @@ void vtkBoneWidget::SetPoint1WorldPosition(double head[3])
     case vtkBoneWidget::Rest:
       {
       this->GetBoneRepresentation()->SetPoint1WorldPosition(head);
-      this->RebuildOrientation();
+      this->RebuildRestTransform();
       this->RebuildLocalRestPoints();
       this->RebuildDebugAxes();
       this->RebuildParentageLink();
@@ -440,7 +440,7 @@ void vtkBoneWidget::SetPoint2WorldPosition(double tail[3])
     case vtkBoneWidget::Rest:
       {
       this->GetBoneRepresentation()->SetPoint2WorldPosition(tail);
-      this->RebuildOrientation();
+      this->RebuildRestTransform();
       this->RebuildLocalRestPoints();
       this->RebuildDebugAxes();
       this->RebuildParentageLink();
@@ -533,9 +533,9 @@ vtkBoneWidget* vtkBoneWidget::GetBoneParent()
 }
 
 //----------------------------------------------------------------------
-void vtkBoneWidget::GetOrientation(double orientation[4])
+void vtkBoneWidget::GetRestTransform(double restTransform[4])
 {
-  CopyQuaternion(this->Orientation, orientation);
+  CopyQuaternion(this->RestTransform, restTransform);
 }
 
 //----------------------------------------------------------------------
@@ -551,13 +551,13 @@ void vtkBoneWidget::GetPoseTransform(double poseTransform[4])
 }
 
 //----------------------------------------------------------------------
-double* vtkBoneWidget::GetOrientation()
+double* vtkBoneWidget::GetRestTransform()
 {
-  return this->Orientation;
+  return this->RestTransform;
 }
 
 //----------------------------------------------------------------------
-void vtkBoneWidget::RebuildOrientation()
+void vtkBoneWidget::RebuildRestTransform()
 {
   //Code greatly inspired by: http://www.fastgraph.com/makegames/3drotation/
 
@@ -580,8 +580,8 @@ void vtkBoneWidget::RebuildOrientation()
   if (vtkMath::Normalize(viewOut) < 0.000001)
     {
     vtkErrorMacro("Tail and Head are not enough apart,"
-                  " could not rebuild orientation");
-    InitializeQuaternion(this->Orientation);
+                  " could not rebuild rest Transform");
+    InitializeQuaternion(this->RestTransform);
     return;
     }
 
@@ -635,9 +635,9 @@ void vtkBoneWidget::RebuildOrientation()
   vtkMath::Cross(viewUp, viewOut,  viewRight);
   vtkMath::Normalize(viewRight); //Let's be paranoid about the normalization
 
-  //Get the orientation matrix
-  AxisAngleToQuaternion(viewRight, acos(upProjection) , this->Orientation);
-  NormalizeQuaternion(this->Orientation);
+  //Get the rest transform matrix
+  AxisAngleToQuaternion(viewRight, acos(upProjection) , this->RestTransform);
+  NormalizeQuaternion(this->RestTransform);
 
   if (this->Roll != 0.0)
     {
@@ -647,8 +647,8 @@ void vtkBoneWidget::RebuildOrientation()
     NormalizeQuaternion(rollQuad);
 
     //Get final matrix
-    MultiplyQuaternion(rollQuad, this->Orientation, this->Orientation);
-    NormalizeQuaternion(this->Orientation);
+    MultiplyQuaternion(rollQuad, this->RestTransform, this->RestTransform);
+    NormalizeQuaternion(this->RestTransform);
     }
 }
 
@@ -659,7 +659,7 @@ void vtkBoneWidget::RebuildLocalRestPoints()
     {
     double axis[3], angle, *head, *tail;
 
-    angle = QuaternionToAxisAngle(this->BoneParent->GetOrientation(), axis);
+    angle = QuaternionToAxisAngle(this->BoneParent->GetRestTransform(), axis);
     vtkMath::Normalize(axis);
 
     vtkSmartPointer<vtkTransform> T = vtkSmartPointer<vtkTransform>::New();
@@ -688,7 +688,7 @@ void vtkBoneWidget::RebuildLocalPosePoints()
     //Get final rotation /axis transform
     double resultTransform[4], axis[3];
     MultiplyQuaternion(this->BoneParent->GetPoseTransform(),
-                       this->BoneParent->GetOrientation(),
+                       this->BoneParent->GetRestTransform(),
                        resultTransform);
     NormalizeQuaternion(resultTransform);
     double angle = QuaternionToAxisAngle(resultTransform, axis);
@@ -870,7 +870,7 @@ void vtkBoneWidget::AddPointAction(vtkAbstractWidget *w)
     self->Point2Widget->GetRepresentation()->SetVisibility(1);
     self->WidgetRep->SetVisibility(1);
 
-    self->RebuildOrientation();
+    self->RebuildRestTransform();
     self->RebuildLocalRestPoints();
     self->RebuildDebugAxes();
     self->RebuildParentageLink();
@@ -950,7 +950,7 @@ void vtkBoneWidget::MoveAction(vtkAbstractWidget *w)
     if ( self->Point1Selected )
       {
       self->GetBoneRepresentation()->SetPoint1DisplayPosition(e);
-      self->RebuildOrientation();
+      self->RebuildRestTransform();
       self->RebuildLocalRestPoints();
       self->RebuildDebugAxes();
       self->RebuildParentageLink();
@@ -963,7 +963,7 @@ void vtkBoneWidget::MoveAction(vtkAbstractWidget *w)
     else if ( self->Point2Selected )
       {
       self->GetBoneRepresentation()->SetPoint2DisplayPosition(e);
-      self->RebuildOrientation();
+      self->RebuildRestTransform();
       self->RebuildLocalRestPoints();
       self->RebuildDebugAxes();
       self->RebuildParentageLink();
@@ -976,7 +976,7 @@ void vtkBoneWidget::MoveAction(vtkAbstractWidget *w)
       {
       self->GetBoneRepresentation()->GetLineHandleRepresentation()->SetDisplayPosition(e);
       vtkBoneRepresentation::SafeDownCast(self->WidgetRep)->WidgetInteraction(e);
-      self->RebuildOrientation();
+      self->RebuildRestTransform();
       self->RebuildLocalRestPoints();
       self->RebuildDebugAxes();
       self->RebuildParentageLink();
@@ -1165,7 +1165,7 @@ void vtkBoneWidget::BoneParentPoseChanged()
 
     //1- multiply quaternion
     MultiplyQuaternion(this->BoneParent->GetPoseTransform(),
-                       this->BoneParent->GetOrientation(),
+                       this->BoneParent->GetRestTransform(),
                        resultTransform);
     NormalizeQuaternion(resultTransform);
 
@@ -1374,7 +1374,7 @@ void vtkBoneWidget::SetWidgetStateToPose()
 
   if (this->WidgetState != vtkBoneWidget::Rest)
     {
-    this->RebuildOrientation();
+    this->RebuildRestTransform();
     }
   this->WidgetState = vtkBoneWidget::Pose;
 
@@ -1407,7 +1407,7 @@ void vtkBoneWidget::SetWidgetStateToRest()
 
   if (this->WidgetState != vtkBoneWidget::Pose)
     {
-    this->RebuildOrientation();
+    this->RebuildRestTransform();
     this->RebuildLocalRestPoints();
     }
   else // previous state was pose
@@ -1418,7 +1418,7 @@ void vtkBoneWidget::SetWidgetStateToRest()
       //Reset point to original rest position
       double axis[3];
       double angle = QuaternionToAxisAngle(
-        this->BoneParent->GetOrientation(), axis);
+        this->BoneParent->GetRestTransform(), axis);
       vtkMath::Normalize(axis);
 
       vtkSmartPointer<vtkTransform> t = vtkSmartPointer<vtkTransform>::New();
@@ -1497,28 +1497,28 @@ void vtkBoneWidget::RebuildDebugAxes()
         this->DebugZ->GetRepresentation())->SetVisibility(0);
       }
     }
-  else if (this->DebugAxes == vtkBoneWidget::ShowOrientation
+  else if (this->DebugAxes == vtkBoneWidget::ShowRestTransform
            || this->DebugAxes == vtkBoneWidget::ShowPoseTransform
-           || this->DebugAxes == vtkBoneWidget::ShowPoseTransformAndOrientation)
+           || this->DebugAxes == vtkBoneWidget::ShowPoseTransformAndRestTransform)
     {
     double o[3], axis[3], angle;
     double distance =
       this->GetBoneRepresentation()->GetDistance() * this->DebugAxesSize;
     this->GetBoneRepresentation()->GetPoint2WorldPosition(o);
       
-    if (this->DebugAxes == vtkBoneWidget::ShowOrientation)
+    if (this->DebugAxes == vtkBoneWidget::ShowRestTransform)
       {
-      angle = vtkBoneWidget::QuaternionToAxisAngle(this->Orientation, axis);
+      angle = vtkBoneWidget::QuaternionToAxisAngle(this->RestTransform, axis);
       }
     else if (this->DebugAxes == vtkBoneWidget::ShowPoseTransform)
       {
       angle = vtkBoneWidget::QuaternionToAxisAngle(this->PoseTransform, axis);
       }
-    else if (this->DebugAxes == vtkBoneWidget::ShowPoseTransformAndOrientation)
+    else if (this->DebugAxes == vtkBoneWidget::ShowPoseTransformAndRestTransform)
       {
       double resultTransform[4];
       MultiplyQuaternion(this->GetPoseTransform(),
-                         this->GetOrientation(),
+                         this->GetRestTransform(),
                           resultTransform);
       NormalizeQuaternion(resultTransform);
 
@@ -1645,12 +1645,12 @@ vtkTransform* vtkBoneWidget::CreateWorldToBoneTransform()
   double transform[4];
   if (this->WidgetState == Rest)
     {
-    CopyQuaternion(this->Orientation, transform);
+    CopyQuaternion(this->RestTransform, transform);
     }
   else //Pose mode
     {
     MultiplyQuaternion(this->BoneParent->GetPoseTransform(),
-                       this->BoneParent->GetOrientation(),
+                       this->BoneParent->GetRestTransform(),
                        transform);
     NormalizeQuaternion(transform);
     }
@@ -1747,10 +1747,10 @@ void vtkBoneWidget::PrintSelf(ostream& os, vtkIndent indent)
                                 << "  " << this->TemporaryPoseTail[2]<< "\n";
 
   os << indent << "Tranforms:" << "\n";
-  os << indent << "  Orientation: "<< this->Orientation[0]
-                                << "  " << this->Orientation[1]
-                                << "  " << this->Orientation[2]
-                                << "  " << this->Orientation[3]<< "\n";
+  os << indent << "  RestTransform: "<< this->RestTransform[0]
+                                << "  " << this->RestTransform[1]
+                                << "  " << this->RestTransform[2]
+                                << "  " << this->RestTransform[3]<< "\n";
   os << indent << "  PoseTransform: "<< this->PoseTransform[0]
                                 << "  " << this->PoseTransform[1]
                                 << "  " << this->PoseTransform[2]

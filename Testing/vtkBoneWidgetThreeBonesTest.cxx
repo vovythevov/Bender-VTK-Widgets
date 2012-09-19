@@ -114,9 +114,9 @@ class ThreeBonesTestKeyPressInteractorStyle : public vtkInteractorStyleTrackball
         {
         double axis[3];
         double angle = vtkBoneWidget::QuaternionToAxisAngle(
-           this->MiddleSonWidget->GetOrientation(), axis);
+           this->MiddleSonWidget->GetRestTransform(), axis);
 
-        std::cout<<"MiddleSonWidget Orientation:"<<std::endl;
+        std::cout<<"MiddleSonWidget RestTransform:"<<std::endl;
         std::cout<<"  Theta:          "<<vtkMath::DegreesFromRadians(angle)<<std::endl;
         std::cout<<"  Rotation Axis:  "<<axis[0]<<" "
           <<axis[1]<<" "<<axis[2]<<std::endl;
@@ -132,7 +132,7 @@ class ThreeBonesTestKeyPressInteractorStyle : public vtkInteractorStyleTrackball
         {
         //std::cout<<"Tab"<<std::endl;
         int state = Widget->GetDebugAxes() + 1;
-        if (state > vtkBoneWidget::ShowPoseTransformAndOrientation)
+        if (state > vtkBoneWidget::ShowPoseTransformAndRestTransform)
           {
           state = 0;
           }

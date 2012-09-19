@@ -89,7 +89,7 @@ public:
   //ETX
 
   // Description:
-  // RestChangedEvent:  Fired when the bone reconstruct its orientation
+  // RestChangedEvent:  Fired when the bone reconstruct its RestTransform
   //                    This reconstruction happens in Rest mode only.
   // PoseChangedEvent:  Fired in pose mode when a point has been moved
   // PoseInteractionStoppedEvent:  Fired when the interaction is stopped for
@@ -142,10 +142,10 @@ public:
   vtkBoneWidget* GetBoneParent();
 
   // Description:
-  // Get/Set the bone's orientation. The orientation is updated in rest mode
+  // Get/Set the bone's RestTransform. The RestTransform is updated in rest mode
   // and fixed in pose mode. It is undefined in the other modes.
-  void GetOrientation (double orientation[4]);
-  double* GetOrientation ();
+  void GetRestTransform (double restTransform[4]);
+  double* GetRestTransform ();
 
   //Description
   //Get/Set the bone's pose transform. The pose transform is updated in pose
@@ -161,35 +161,35 @@ public:
   //Description
   //Set/get if the debug axes are visible or not.
   //Nothing <-> 0:                          Show nothing
-  //ShowOrientation <-> 1:                  The debug axes will output the
-  //                                        orientation axes
+  //ShowRestTransform <-> 1:                  The debug axes will output the
+  //                                        RestTransform axes
   //ShowPoseTransform  <-> 2:               The debug axes will output the
   //                                        pose transform axes
-  //ShowPoseTransformAndOrientation <-> 3:  The debug axes will output the
-  //                                        result of the orientation
+  //ShowPoseTransformAndRestTransform <-> 3:  The debug axes will output the
+  //                                        result of the RestTransform
   //                                        and the pose tranform.
   vtkGetMacro(DebugAxes, int);
   void SetDebugAxes (int debugAxes);
 
   // Description:
   //Nothing:                          Show nothing
-  //ShowOrientation:                  The debug axes will output the orientation axes
+  //ShowRestTransform:                  The debug axes will output the RestTransform axes
   //ShowPoseTransform:                The debug axes will output the pose transform axes
-  //ShowPoseTransformAndOrientation:  The debug axes will output the result of the orientation
+  //ShowPoseTransformAndRestTransform:  The debug axes will output the result of the RestTransform
   //                                  and the pose tranform.
   //BTX
   enum DebugAxesType {Nothing = 0,
-                      ShowOrientation,
+                      ShowRestTransform,
                       ShowPoseTransform,
-                      ShowPoseTransformAndOrientation
+                      ShowPoseTransformAndRestTransform
                       };
   //ETX
 
   // Description:
   // Get the transform from world to bone coordinates.
   // This transform is:
-  //    Rest mode T = Orientation + Translation
-  //    Pose mode T = Orientation*PoseTransform + Translation
+  //    Rest mode T = RestTransform + Translation
+  //    Pose mode T = RestTransform*PoseTransform + Translation
   //    Start/Define mode T = NULL
   // The user is responsible for deleting the transformed received.
   vtkTransform* CreateWorldToBoneTransform();
@@ -246,7 +246,7 @@ protected:
   double                      TemporaryPoseTail[3];
   double                      OldPoseTransform[4];
   double                      Roll; // in radians
-  double                      Orientation[4];
+  double                      RestTransform[4];
   double                      PoseTransform[4];
 
   //For the link between parent and child
@@ -262,7 +262,7 @@ protected:
   double                      DebugAxesSize;
 
   //Essentials functions
-  void RebuildOrientation();
+  void RebuildRestTransform();
   void RebuildLocalRestPoints();
   void RebuildLocalPosePoints();
   void RebuildPoseTransform();

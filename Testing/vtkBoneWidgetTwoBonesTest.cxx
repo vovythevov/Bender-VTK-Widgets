@@ -83,7 +83,7 @@ class TwoBonesTestKeyPressInteractorStyle : public vtkInteractorStyleTrackballCa
         {
         //std::cout<<"Tab"<<std::endl;
         int state = Widget->GetDebugAxes() + 1;
-        if (state > vtkBoneWidget::ShowPoseTransformAndOrientation)
+        if (state > vtkBoneWidget::ShowPoseTransformAndRestTransform)
           {
           state = 0;
           }
@@ -145,7 +145,7 @@ int vtkBoneWidgetTwoBonesTest(int, char *[])
   fatherBoneWidget->GetBoneRepresentation()->GetPoint2Representation()->GetProperty()->SetColor(0.0, 0.0, 1.0);
   fatherBoneWidget->SetWidgetStateToRest();
 
-  //Test orientation matrix
+  //Test RestTransform matrix
   double axis[3], expectedAngle, expectedAxis[3], angle;
 
   //Test Z Axis
@@ -154,7 +154,7 @@ int vtkBoneWidgetTwoBonesTest(int, char *[])
   expectedAngle = vtkMath::Pi() / 2.0;
   expectedAxis[0] = 1.0; expectedAxis[1] = 0.0; expectedAxis[2] = 0.0;
 
-  angle = vtkBoneWidget::QuaternionToAxisAngle(fatherBoneWidget->GetOrientation(), axis);
+  angle = vtkBoneWidget::QuaternionToAxisAngle(fatherBoneWidget->GetRestTransform(), axis);
   if (fabs(angle - expectedAngle) > 0.0001)
     {
     std::cout<<"Angle different !"<<std::endl
@@ -183,7 +183,7 @@ int vtkBoneWidgetTwoBonesTest(int, char *[])
   expectedAngle = 0.0;
   expectedAxis[0] = 1.0; expectedAxis[1] = 0.0; expectedAxis[2] = 0.0;
 
-  angle = vtkBoneWidget::QuaternionToAxisAngle(fatherBoneWidget->GetOrientation(), axis);
+  angle = vtkBoneWidget::QuaternionToAxisAngle(fatherBoneWidget->GetRestTransform(), axis);
   if (fabs(angle - expectedAngle) > 0.0001)
     {
     std::cout<<"Angle different !"<<std::endl
@@ -211,7 +211,7 @@ int vtkBoneWidgetTwoBonesTest(int, char *[])
   expectedAngle = vtkMath::Pi() / 2.0;
   expectedAxis[0] = 0.0; expectedAxis[1] = 0.0; expectedAxis[2] = -1.0;
 
-  angle = vtkBoneWidget::QuaternionToAxisAngle(fatherBoneWidget->GetOrientation(), axis);
+  angle = vtkBoneWidget::QuaternionToAxisAngle(fatherBoneWidget->GetRestTransform(), axis);
   if (fabs(angle - expectedAngle) > 0.0001)
     {
     std::cout<<"Angle different !"<<std::endl
@@ -239,7 +239,7 @@ int vtkBoneWidgetTwoBonesTest(int, char *[])
   expectedAngle = 0.955317;
   expectedAxis[0] = sqrt(2.0)/2.0; expectedAxis[1] = 0.0; expectedAxis[2] = -sqrt(2.0)/2.0;
 
-  angle = vtkBoneWidget::QuaternionToAxisAngle(fatherBoneWidget->GetOrientation(), axis);
+  angle = vtkBoneWidget::QuaternionToAxisAngle(fatherBoneWidget->GetRestTransform(), axis);
   if (fabs(angle - expectedAngle) > 0.0001)
     {
     std::cout<<"Angle different !"<<std::endl
@@ -277,11 +277,11 @@ int vtkBoneWidgetTwoBonesTest(int, char *[])
   sonBoneWidget->GetBoneRepresentation()->GetPoint2Representation()->GetProperty()->SetColor(0.0, 0.0, 1.0);
 
   //Test son
-  //Orientation
+  //RestTransform
   expectedAngle = vtkMath::Pi() / 2.0;
   expectedAxis[0] = 1.0; expectedAxis[1] = 0.0; expectedAxis[2] = 0.0;
 
-  angle = vtkBoneWidget::QuaternionToAxisAngle(sonBoneWidget->GetOrientation(), axis);
+  angle = vtkBoneWidget::QuaternionToAxisAngle(sonBoneWidget->GetRestTransform(), axis);
   if (fabs(angle - expectedAngle) > 0.0001)
     {
     std::cout<<"Angle different !"<<std::endl
