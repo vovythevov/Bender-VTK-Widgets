@@ -124,6 +124,8 @@ class vtkBoneWidgetCallback : public vtkCommand
 public:
   static vtkBoneWidgetCallback *New()
     { return new vtkBoneWidgetCallback; }
+  vtkBoneWidgetCallback()
+    { this->BoneWidget = 0; }
   virtual void Execute(vtkObject* caller, unsigned long eventId, void*)
     {
       switch (eventId)
@@ -167,7 +169,7 @@ public:
           }
         }
     }
-    vtkBoneWidget *BoneWidget;
+  vtkBoneWidget *BoneWidget;
 };
 
 //----------------------------------------------------------------------
@@ -189,12 +191,6 @@ vtkBoneWidget::vtkBoneWidget()
 
   InitializeQuaternion(this->Orientation);
   InitializeQuaternion(this->PoseTransform);
-
-  // Manage priorities, we want the handles to be lower priority
-  if ( this->Priority <= 0.0 )
-    {
-    this->Priority = 0.01;
-    }
 
   // The widgets for moving the end points. They observe this widget (i.e.,
   // this widget is the parent to the handles).
@@ -646,14 +642,17 @@ void vtkBoneWidget::RebuildOrientation()
   AxisAngleToQuaternion(viewRight, acos(upProjection) , this->Orientation);
   NormalizeQuaternion(this->Orientation);
 
-  //Get the roll matrix
-  double rollQuad[4];
-  AxisAngleToQuaternion(viewOut, this->Roll , rollQuad);
-  NormalizeQuaternion(rollQuad);
+  if (this->Roll != 0.0)
+    {
+    //Get the roll matrix
+    double rollQuad[4];
+    AxisAngleToQuaternion(viewOut, this->Roll , rollQuad);
+    NormalizeQuaternion(rollQuad);
 
-  //Get final matrix
-  MultiplyQuaternion(rollQuad, this->Orientation, this->Orientation);
-  NormalizeQuaternion(this->Orientation);
+    //Get final matrix
+    MultiplyQuaternion(rollQuad, this->Orientation, this->Orientation);
+    NormalizeQuaternion(this->Orientation);
+    }
 }
 
 //----------------------------------------------------------------------
@@ -806,20 +805,6 @@ void vtkBoneWidget::SetEnabled(int enabling)
 }
 
 //----------------------------------------------------------------------
-int vtkBoneWidget::IsMeasureValid()
-{
-  if ( this->WidgetState == vtkBoneWidget::Rest ||
-    this->WidgetState == vtkBoneWidget::Define)
-    {
-    return 1;
-    }
-  else
-    {
-    return 0;
-    }
-}
-
-//----------------------------------------------------------------------
 void vtkBoneWidget::SetRepresentation(vtkBoneRepresentation* r)
 {
   if (this->WidgetState == vtkBoneWidget::Pose
@@ -952,6 +937,7 @@ void vtkBoneWidget::MoveAction(vtkAbstractWidget *w)
 
   if ( self->WidgetState == vtkBoneWidget::Define )
     {
+    // \todo: factorize call to InteractionEvent and SetAbortFlag
     self->InvokeEvent(vtkCommand::InteractionEvent,NULL);
     self->EventCallbackCommand->SetAbortFlag(1);
     }
@@ -966,6 +952,7 @@ void vtkBoneWidget::MoveAction(vtkAbstractWidget *w)
       self->RebuildDebugAxes();
       self->RebuildParentageLink();
 
+      // \todo: factorize call to InteractionEvent and SetAbortFlag
       //self->InvokeEvent(vtkBoneWidget::RestChangedEvent, NULL);
       self->InvokeEvent(vtkCommand::InteractionEvent,NULL);
       }
@@ -1312,6 +1299,11 @@ void vtkBoneWidget::SetProcessEvents(int pe)
 //----------------------------------------------------------------------
 void vtkBoneWidget::SetWidgetState(int state)
 {
+  if ( state == this->WidgetState )
+    {
+    return;
+    }
+  this->WidgetState = state;
   switch (state)
     {
     case vtkBoneWidget::Start:
@@ -1345,6 +1337,7 @@ void vtkBoneWidget::SetWidgetState(int state)
       break;
       }
     }
+  this->Modified();
 }
 
 //----------------------------------------------------------------------
@@ -1603,6 +1596,7 @@ void vtkBoneWidget::LinkPoint1ToParent()
     this->SetPoint1WorldPosition(
       this->BoneParent->GetvtkBoneRepresentation()->GetPoint2WorldPosition());
     }
+    }
 }
 
 //----------------------------------------------------------------------
@@ -1625,61 +1619,37 @@ void vtkBoneWidget::SetShowParentage(int parentage)
 }
 
 //----------------------------------------------------------------------
-void vtkBoneWidget::AxisAngleToQuaternion(double axis[3], double angle, double quad[4])
+vtkTransform* vtkBoneWidget::CreateWorldToBoneTransform()
 {
-  quad[0] = cos( angle / 2.0 );
-  double f = sin( angle / 2.0);
+  double origin[3];
+  this->GetvtkBoneRepresentation()->GetPoint1WorldPosition(origin);
 
-  double vec[3];
-  vec[0] = axis[0];
-  vec[1] = axis[1];
-  vec[2] = axis[2];
-  vtkMath::Normalize(vec);
+  vtkTransform* t = vtkTransform::New();
+  t->Translate( origin );
 
-  quad[1] =  vec[0] * f;
-  quad[2] =  vec[1] * f;
-  quad[3] =  vec[2] * f;
-}
-
-//----------------------------------------------------------------------
-vtkTransform* vtkBoneWidget::GetWorldToBoneTransform()
-{
-  if (this->WidgetState == vtkBoneWidget::Start
-      || this->WidgetState == vtkBoneWidget::Define)
+  double transform[4];
+  if (this->WidgetState == Rest)
     {
-    return NULL;
+    CopyQuaternion(this->Orientation, transform);
     }
-  else
+  else //Pose mode
     {
-    double o[3], axis[3], angle;
-    this->GetvtkBoneRepresentation()->GetPoint1WorldPosition(o);
-
-    vtkTransform* T = vtkTransform::New();
-    T->Translate( o );
-
-    if (this->WidgetState == Rest)
-      {
-      angle = QuaternionToAxisAngle(this->Orientation, axis);
-      }
-    else //Pose mode
-      {
-      double resultTransform[4];
-      MultiplyQuaternion(this->BoneParent->GetPoseTransform(),
+    MultiplyQuaternion(this->BoneParent->GetPoseTransform(),
                        this->BoneParent->GetOrientation(),
-                       resultTransform);
-      NormalizeQuaternion(resultTransform);
-
-      angle = QuaternionToAxisAngle(resultTransform, axis);
-      }
-    T->RotateWXYZ(angle, axis);
-    return T;
+                       transform);
+    NormalizeQuaternion(transform);
     }
+
+  double axis[3];
+  double angle = QuaternionToAxisAngle(transform, axis);
+  t->RotateWXYZ(angle, axis);
+  return t;
 }
 
 //----------------------------------------------------------------------
 double vtkBoneWidget::QuaternionToAxisAngle(double quad[4], double axis[3])
 {
-  double angle = acos(quad[0]) *2.0;
+  double angle = acos(quad[0]) * 2.0;
   double f = sin( angle * 0.5 );
   if (f > 1e-13)
     {
@@ -1687,23 +1657,37 @@ double vtkBoneWidget::QuaternionToAxisAngle(double quad[4], double axis[3])
     axis[1] = quad[2] / f;
     axis[2] = quad[3] / f;
     }
+  else if (angle > 1e-13 || angle < -1e-13) //means rotation of pi
+    {
+    axis[0] = 1.0;
+    axis[1] = 0.0;
+    axis[2] = 0.0;
+    }
   else
     {
-    if (angle > 1e-13 || angle < 1e-13) //means rotation of pi
-      {
-      axis[0] = 1.0;
-      axis[1] = 0.0;
-      axis[2] = 0.0;
-      }
-    else
-      {
-      axis[0] = 0.0;
-      axis[1] = 0.0;
-      axis[2] = 0.0;
-      }
+    axis[0] = 0.0;
+    axis[1] = 0.0;
+    axis[2] = 0.0;
     }
 
   return angle;
+}
+
+//----------------------------------------------------------------------
+void vtkBoneWidget::AxisAngleToQuaternion(double axis[3], double angle, double quad[4])
+{
+  quad[0] = cos( angle / 2.0 );
+
+  double vec[3];
+  vec[0] = axis[0];
+  vec[1] = axis[1];
+  vec[2] = axis[2];
+  vtkMath::Normalize(vec);
+
+  double f = sin( angle / 2.0);
+  quad[1] =  vec[0] * f;
+  quad[2] =  vec[1] * f;
+  quad[3] =  vec[2] * f;
 }
 
 //----------------------------------------------------------------------

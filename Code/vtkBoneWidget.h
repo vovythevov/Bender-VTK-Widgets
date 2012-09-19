@@ -21,10 +21,11 @@
 #ifndef __vtkBoneWidget_h
 #define __vtkBoneWidget_h
 
-// A bone is always define with respect to a frame.
-// It can be World or the parent's frame.
+//TO DO: ADD COMMENTS
 
-// In a parent's frame, x is always along the line, from point 1 to point 2
+// A bone is always defined with respect to a frame.
+// It can be World or the parent's frame.
+// In a parent's frame, Y is always along the line, from point 1 to point 2.
 
 #include "vtkAbstractWidget.h"
 #include "vtkBoneWidgetHeader.h"
@@ -67,74 +68,69 @@ public:
     {return reinterpret_cast<vtkBoneRepresentation*>(this->WidgetRep);}
 
   // Description:
-  // Create the default widget representation if one is not set.
-  void CreateDefaultRepresentation();
-
-  // Description:
-  // A flag indicates whether the bi-dimensional measure is valid. The widget
-  // becomes valid after two of the four points are placed.
-  int IsMeasureValid();
+  // Create the default widget representation (vtkBoneRepresentation) if no one is set.
+  virtual void CreateDefaultRepresentation();
 
   // Description:
   // Methods to change the whether the widget responds to interaction.
   // Overridden to pass the state to component widgets.
-  virtual void SetProcessEvents(int);
+  virtual void SetProcessEvents(int process);
 
   // Description:
-  //Start Mode:   Define the first point when clicked. Goes then to define mode
-  //Define Mode:  Define the second point when clicked. Goes then to rest mode
-  //Rest Mode:    The bone can be moved and rescaled. If the bone has Children,
-  //              the Children will head will (P1) rescale of they are linked
-  //              (See P1LinkedToParent)
-  //Pose Mode:    The bone can only be rotated. If the bone has Children, the Children
-  //              will rotate accordingly but will stay exactly the same
-  //              (NO rescaling)
+  // Start Mode:  Define the first point when clicked. Goes then to define mode.
+  // Define Mode:  Define the second point when clicked. Goes then to rest mode.
+  // Rest Mode:  The bone can be moved and rescaled. If the bone has Children,
+  //             the Children will head will (Head) rescale of they are linked
+  //             (See HeadLinkedToParent).
+  // Pose Mode:  The bone can only be rotated. If the bone has Children, the Children
+  //             will rotate accordingly but will stay exactly the same
+  //             (NO rescaling).
   //BTX
-  enum _WidgetState {Start=0,Define,Rest,Pose};
+  enum WidgetStateType {Start=0,Define,Rest,Pose};
   //ETX
 
   // Description:
-  //OrientationChangedEvent:      Fired when the bone reconstruct its orientation
-  //                              This reconstruction happens in Rest mode only.
-  //PoseChangedEvent:             Fired in pose mode when a point has been moved
-  //PoseInteractionStoppedEvent:  Fired when the interaction is stopped for
-  //                              the children of the bone
+  // RestChangedEvent:  Fired when the bone reconstruct its orientation
+  //                    This reconstruction happens in Rest mode only.
+  // PoseChangedEvent:  Fired in pose mode when a point has been moved
+  // PoseInteractionStoppedEvent:  Fired when the interaction is stopped for
+  //                               the children of the bone
   //BTX
   enum BoneWidgetEvent {RestChangedEvent = vtkCommand::UserEvent + 1,
                         PoseChangedEvent,
                         PoseInteractionStoppedEvent};
   //ETX
 
-  //Description
-  //Set/Get the point1 world position
+  // Description:
+  // Set/Get the point1 world position
   void SetPoint1WorldPosition(double x, double y, double z);
-  void SetPoint1WorldPosition(double p1[3]);
-  void GetPoint1WorldPosition(double p1[3]);
+  void SetPoint1WorldPosition(double Head[3]);
+  void GetPoint1WorldPosition(double Head[3]);
   double* GetPoint1WorldPosition();
 
-  //Description
+  // Description:
   //Set/Get the point2 world position
   void SetPoint2WorldPosition(double x, double y, double z);
-  void SetPoint2WorldPosition(double p2[3]);
-  void GetPoint2WorldPosition(double p1[3]);
+  void SetPoint2WorldPosition(double Tail[3]);
+  void GetPoint2WorldPosition(double Head[3]);
   double* GetPoint2WorldPosition();
 
-  //Descritpion
-  //Helper function for conversion quaternion conversion
+  // Descritpion:
+  // Helper function for conversion quaternion conversion
   // to and from rotation/axis
   static double QuaternionToAxisAngle(double quad[4], double axis[3]);
   static void AxisAngleToQuaternion(double axis[3], double angle, double quad[4]);
 
   // Description:
-  //Set/Get the widget state.
-  //Start Mode:   Define the first point when clicked. Goes then to define mode
-  //Define Mode:  Define the second point when clicked. Goes then to rest mode
-  //Rest Mode:    The bone can be moved and rescaled. If the bone has Children,
-  //              the Children will head will (P1) rescale of they are linked
-  //              (See P1LinkedToParent)
-  //Pose Mode:    The bone can only be rotated. If the bone has Children, the Children
-  //              will rotate accordingly but will stay exactly the same
-  //              (NO rescaling)
+  // Set/Get the widget state.
+  // Start Mode:   Define the first point when clicked. Goes then to define mode
+  // Define Mode:  Define the second point when clicked. Goes then to rest mode
+  // Rest Mode:    The bone can be moved and rescaled. If the bone has Children,
+  //               the Children will head will (Head) rescale of they are linked
+  //               (See HeadLinkedToParent)
+  // Pose Mode:    The bone can only be rotated. If the bone has Children, the Children
+  //               will rotate accordingly but will stay exactly the same
+  //               (NO rescaling)
   vtkGetMacro(WidgetState, int);
   void SetWidgetState(int state);
   void SetWidgetStateToStart();
@@ -142,12 +138,12 @@ public:
   void SetWidgetStateToPose();
 
   // Description:
-  //Get/Set the bone's parent. If NULL, then the bone is considerer like root
+  // Get/Set the bone's parent. If NULL, then the bone is considerer like root
   void SetBoneParent(vtkBoneWidget* parent);
   vtkBoneWidget* GetBoneParent();
 
-  //Description
-  //Get/Set the bone's orientation. The orientation is updated in rest mode
+  // Description:
+  // Get/Set the bone's orientation. The orientation is updated in rest mode
   // and fixed in pose mode. It is undefined in the other modes.
   void GetOrientation (double orientation[4]);
   double* GetOrientation ();
@@ -190,23 +186,23 @@ public:
                   };
   //ETX
 
-  //Description:
-  //Get the transform from world to bone coordinates.
-  //This transform is:
+  // Description:
+  // Get the transform from world to bone coordinates.
+  // This transform is:
   //    Rest mode T = Orientation + Translation
   //    Pose mode T = Orientation*PoseTransform + Translation
   //    Start/Define mode T = NULL
-  //The user is responsible for deleting the transformed received
-  vtkTransform* GetWorldToBoneTransform();
+  // The user is responsible for deleting the transformed received.
+  vtkTransform* CreateWorldToBoneTransform();
 
   //Description
-  // Set/Get if the bone P1 is linked, i.e merged. with the parent P2
-  // When setting this to true, the bone P1 is automatically snapped
-  // to the parent P2 and the P1 widget is disabled
-  // When setting this to false, nothing visible happen but the P1
+  // Set/Get if the bone Head is linked, i.e merged. with the parent Tail
+  // When setting this to true, the bone Head is automatically snapped
+  // to the parent Tail and the Head widget is disabled
+  // When setting this to false, nothing visible happen but the Head
   // widget is re-enabled.
-  vtkGetMacro(P1LinkedToParent, int);
-  void SetP1LinkedToParent (int link);
+  vtkGetMacro(HeadLinkedToParent, int);
+  void SetHeadLinkedToParent (int link);
 
   //Description
   // Show/Hide the link between a child an its parent
