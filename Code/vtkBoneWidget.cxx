@@ -248,6 +248,9 @@ vtkBoneWidget::vtkBoneWidget()
   this->P1LinkedToParent = 0;
   this->ShowParentage = 0;
   this->ParentageLink = vtkLineWidget2::New();
+
+  this->RebuildDebugAxes();
+  this->RebuildParentageLink();
 }
 
 //----------------------------------------------------------------------
@@ -1349,6 +1352,8 @@ void vtkBoneWidget::SetWidgetStateToStart()
   
   this->WidgetRep->Highlight(0);
 
+  this->RebuildDebugAxes();
+  this->RebuildParentageLink();
   this->SetEnabled(this->GetEnabled()); // show/hide the handles properly
   this->ReleaseFocus();
 }
@@ -1457,7 +1462,9 @@ void vtkBoneWidget::RebuildParentageLink()
       vtkLineRepresentation::SafeDownCast(
         this->ParentageLink->GetRepresentation());
 
-  if (this->ShowParentage && this->BoneParent && ! this->P1LinkedToParent)
+  if (this->ShowParentage && this->BoneParent && ! this->P1LinkedToParent
+      && (this->WidgetState == vtkBoneWidget::Rest
+          || this->WidgetState == vtkBoneWidget::Pose))
     {
     rep->SetVisibility(1);
 
@@ -1475,7 +1482,9 @@ void vtkBoneWidget::RebuildParentageLink()
 //----------------------------------------------------------------------
 void vtkBoneWidget::RebuildDebugAxes()
 {
-  if (this->DebugAxes == vtkBoneWidget::Nothing)
+  if (this->DebugAxes == vtkBoneWidget::Nothing
+      || this->WidgetState == vtkBoneWidget::Start
+      || this->WidgetState == vtkBoneWidget::Define)
     {
     if (vtkLineRepresentation::SafeDownCast(
           this->DebugX->GetRepresentation())->GetVisibility() == 1)
