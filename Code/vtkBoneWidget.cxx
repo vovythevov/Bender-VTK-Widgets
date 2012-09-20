@@ -1121,7 +1121,7 @@ void vtkBoneWidget::EndSelectAction(vtkAbstractWidget *w)
 void vtkBoneWidget::BoneParentInteractionStopped()
 {
   //If the movement is finished, store the pose transform
-  CopyQuaternion(this->PoseTransform, this->OldPoseTransform);
+  CopyQuaternion(this->PoseTransform, this->StartPoseTransform);
 
   //And update the pose point
   this->GetBoneRepresentation()->GetHeadWorldPosition(this->TemporaryPoseHead);
@@ -1210,11 +1210,11 @@ void vtkBoneWidget::RebuildPoseTransform()
       }
 
     // PoseTransform is the sum of the transform applied to the bone in
-    // pose mode. The previous transform are stored in OldPoseTransform
+    // pose mode. The previous transform are stored in StartPoseTransform
     double quad[4];
     AxisAngleToQuaternion(rotationAxis, poseAngle, quad);
     NormalizeQuaternion(quad);
-    MultiplyQuaternion(quad, this->OldPoseTransform, this->PoseTransform);
+    MultiplyQuaternion(quad, this->StartPoseTransform, this->PoseTransform);
     NormalizeQuaternion(this->PoseTransform);
     }
 
@@ -1328,7 +1328,7 @@ void vtkBoneWidget::SetWidgetStateToPose()
 
   CopyVector3(this->LocalRestHead, this->LocalPoseHead);
   CopyVector3(this->LocalRestTail, this->LocalPoseTail);
-  InitializeQuaternion(this->OldPoseTransform);
+  InitializeQuaternion(this->StartPoseTransform);
 
   this->GetBoneRepresentation()->GetHeadWorldPosition(this->TemporaryPoseHead);
   this->GetBoneRepresentation()->GetTailWorldPosition(this->TemporaryPoseTail);
@@ -1355,7 +1355,7 @@ void vtkBoneWidget::SetWidgetStateToRest()
   this->TailSelected = 0;
 
   InitializeQuaternion(this->PoseTransform);
-  InitializeQuaternion(this->OldPoseTransform);
+  InitializeQuaternion(this->StartPoseTransform);
   InitializeVector3(this->TemporaryPoseHead);
   InitializeVector3(this->TemporaryPoseTail);
   InitializeVector3(this->LocalPoseHead);
@@ -1730,10 +1730,10 @@ void vtkBoneWidget::PrintSelf(ostream& os, vtkIndent indent)
                                 << "  " << this->PoseTransform[1]
                                 << "  " << this->PoseTransform[2]
                                 << "  " << this->PoseTransform[3]<< "\n";
-  os << indent << "  OldPoseTransform: "<< this->OldPoseTransform[0]
-                                << "  " << this->OldPoseTransform[1]
-                                << "  " << this->OldPoseTransform[2]
-                                << "  " << this->OldPoseTransform[3]<< "\n";
+  os << indent << "  StartPoseTransform: "<< this->StartPoseTransform[0]
+                                << "  " << this->StartPoseTransform[1]
+                                << "  " << this->StartPoseTransform[2]
+                                << "  " << this->StartPoseTransform[3]<< "\n";
 
   os << indent << "Roll: "<< this->Roll << "\n";
 

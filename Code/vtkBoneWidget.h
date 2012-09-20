@@ -256,7 +256,7 @@ protected:
   double                      LocalPoseTail[3];
   double                      TemporaryPoseHead[3];
   double                      TemporaryPoseTail[3];
-  double                      OldPoseTransform[4];
+  double                      StartPoseTransform[4];
   double                      Roll; // in radians
   double                      RestTransform[4];
   double                      PoseTransform[4];
