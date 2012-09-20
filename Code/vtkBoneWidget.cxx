@@ -1217,6 +1217,8 @@ void vtkBoneWidget::RebuildPoseTransform()
 //-------------------------------------------------------------------------
 void vtkBoneWidget::BoneParentRestChanged()
 {
+  this->RebuildLocalRestPoints();
+
   //In the previous behavior, we had the child Head to follow the parent
   //Tail in distance
 
