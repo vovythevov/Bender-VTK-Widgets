@@ -26,6 +26,8 @@
 #include "vtkLineRepresentation.h"
 #include "vtkBoneWidgetHeader.h"
 
+class vtkPointHandleRepresentation3D;
+
 class VTK_BONEWIDGETS_EXPORT vtkBoneRepresentation : public vtkLineRepresentation
 {
 public:
@@ -54,6 +56,9 @@ public:
   double* GetTailWorldPosition();
   virtual void SetTailWorldPosition(double pos[3]);
   virtual void SetTailDisplayPosition(double pos[3]);
+
+  vtkPointHandleRepresentation3D* GetHeadRepresentation();
+  vtkPointHandleRepresentation3D* GetTailRepresentation();
 
   virtual void Highlight(int highlight)
     {

@@ -136,6 +136,18 @@ void vtkBoneRepresentation::SetTailDisplayPosition(double x[3])
 }
 
 //----------------------------------------------------------------------
+vtkPointHandleRepresentation3D* vtkBoneRepresentation::GetHeadRepresentation()
+{
+  return this->GetPoint1Representation();
+}
+
+//----------------------------------------------------------------------
+vtkPointHandleRepresentation3D* vtkBoneRepresentation::GetTailRepresentation()
+{
+  return this->GetPoint2Representation();
+}
+
+//----------------------------------------------------------------------
 void vtkBoneRepresentation::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
