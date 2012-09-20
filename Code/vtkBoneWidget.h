@@ -101,18 +101,18 @@ public:
   //ETX
 
   // Description:
-  // Set/Get the point1 world position
-  void SetPoint1WorldPosition(double x, double y, double z);
-  void SetPoint1WorldPosition(double Head[3]);
-  void GetPoint1WorldPosition(double Head[3]);
-  double* GetPoint1WorldPosition();
+  // Set/Get the head world position
+  void SetHeadWorldPosition(double x, double y, double z);
+  void SetHeadWorldPosition(double Head[3]);
+  void GetHeadWorldPosition(double Head[3]);
+  double* GetHeadWorldPosition();
 
   // Description:
-  //Set/Get the point2 world position
-  void SetPoint2WorldPosition(double x, double y, double z);
-  void SetPoint2WorldPosition(double Tail[3]);
-  void GetPoint2WorldPosition(double Head[3]);
-  double* GetPoint2WorldPosition();
+  //Set/Get the tail world position
+  void SetTailWorldPosition(double x, double y, double z);
+  void SetTailWorldPosition(double Tail[3]);
+  void GetTailWorldPosition(double Head[3]);
+  double* GetTailWorldPosition();
 
   // Descritpion:
   // Helper function for conversion quaternion conversion
@@ -215,8 +215,8 @@ protected:
   // The state of the widget
   int WidgetState;
   int BoneSelected;
-  int Point1Selected;
-  int Point2Selected;
+  int HeadSelected;
+  int TailSelected;
 
   // Callback interface to capture events when
   // placing the widget.
@@ -225,8 +225,8 @@ protected:
   static void EndSelectAction(vtkAbstractWidget*);
 
   // The positioning handle widgets
-  vtkHandleWidget *Point1Widget;
-  vtkHandleWidget *Point2Widget;
+  vtkHandleWidget *HeadWidget;
+  vtkHandleWidget *TailWidget;
   vtkBoneWidgetCallback *BoneWidgetCallback1;
   vtkBoneWidgetCallback *BoneWidgetCallback2;
 
