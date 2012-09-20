@@ -177,20 +177,11 @@ vtkBoneWidget::vtkBoneWidget()
 {
   this->ManagesCursor = 1;
 
+  //Widget interaction init
   this->WidgetState = vtkBoneWidget::Start;
-
-  this->BoneParent = NULL;
-  InitializeVector3(this->LocalRestHead);
-  InitializeVector3(this->LocalRestTail);
-  InitializeVector3(this->LocalPoseHead);
-  InitializeVector3(this->LocalPoseTail);
-  InitializeVector3(this->InteractionWorldHead);
-  InitializeVector3(this->InteractionWorldTail);
-
-  this->Roll = 0.0;
-
-  InitializeQuaternion(this->RestTransform);
-  InitializeQuaternion(this->PoseTransform);
+  this->BoneSelected = 0;
+  this->HeadSelected = 0;
+  this->TailSelected = 0;
 
   // The widgets for moving the end points. They observe this widget (i.e.,
   // this widget is the parent to the handles).
@@ -219,7 +210,9 @@ vtkBoneWidget::vtkBoneWidget()
   this->TailWidget->AddObserver(vtkCommand::EndInteractionEvent, this->BoneWidgetCallback2,
                                   this->Priority);
 
-  // Set up the callbacks for the children
+//Setup the callback for the parent/child processing
+  this->BoneParent = NULL;
+
   this->BoneWidgetChildrenCallback = vtkBoneWidgetCallback::New();
   this->BoneWidgetChildrenCallback->BoneWidget = this;
 
@@ -234,22 +227,28 @@ vtkBoneWidget::vtkBoneWidget()
                                           vtkWidgetEvent::EndSelect,
                                           this, vtkBoneWidget::EndSelectAction);
 
+  //Init bone variables
+  InitializeVector3(this->LocalRestHead);
+  InitializeVector3(this->LocalRestTail);
+  InitializeVector3(this->LocalPoseHead);
+  InitializeVector3(this->LocalPoseTail);
+  InitializeVector3(this->InteractionWorldHead);
+  InitializeVector3(this->InteractionWorldTail);
+  this->Roll = 0.0;
+  InitializeQuaternion(this->RestTransform);
+  InitializeQuaternion(this->PoseTransform);
+
+  //parentage link init
+  this->HeadLinkedToParent = 0;
+  this->ShowParentage = 0;
+  this->ParentageLink = vtkLineWidget2::New();
+
   //Debug axes init
   this->DebugAxes = vtkBoneWidget::Nothing;
   this->DebugX = vtkLineWidget2::New();
   this->DebugY = vtkLineWidget2::New();
   this->DebugZ = vtkLineWidget2::New();
   this->DebugAxesSize = 0.2;
-
-  //Widget interaction init
-  this->BoneSelected = 0;
-  this->HeadSelected = 0;
-  this->TailSelected = 0;
-
-  //parentage link init
-  this->HeadLinkedToParent = 0;
-  this->ShowParentage = 0;
-  this->ParentageLink = vtkLineWidget2::New();
 
   this->RebuildDebugAxes();
   this->RebuildParentageLink();
