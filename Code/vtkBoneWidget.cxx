@@ -1645,6 +1645,36 @@ void vtkBoneWidget::SetShowParentage(int parentage)
 }
 
 //----------------------------------------------------------------------
+vtkTransform* vtkBoneWidget::CreatetWorldToBoneParentTransform()
+{
+  vtkTransform* transform = vtkTransform::New();
+  if (!this->BoneParent)
+    {
+    return transform;
+    }
+
+  transform->Translate(this->BoneParent->GetTailWorldPosition());
+
+  double resultTransform[4];
+  if (this->WidgetState == Rest)
+    {
+    CopyQuaternion(this->BoneParent->RestTransform, resultTransform);
+    }
+  else
+    {
+    MultiplyQuaternion(this->BoneParent->GetPoseTransform(),
+                       this->BoneParent->GetRestTransform(),
+                       resultTransform);
+    NormalizeQuaternion(resultTransform);
+    }
+
+  double axis[3];
+  double angle = QuaternionToAxisAngle(resultTransform, axis);
+  transform->RotateWXYZ(angle, axis);
+  return transform;
+}
+
+//----------------------------------------------------------------------
 vtkTransform* vtkBoneWidget::CreateWorldToBoneTransform()
 {
   double origin[3];

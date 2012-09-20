@@ -194,6 +194,18 @@ public:
   // The user is responsible for deleting the transformed received.
   vtkTransform* CreateWorldToBoneTransform();
 
+  // Description:
+  // Get the transform from world to bone parent coordinates.
+  // This transform is identity is the bone does not have a parent
+  // Otherwise:
+  //    Rest mode T = BoneParentRestTransform + Translation
+  //    Pose mode T = BonreParentRestTransform*BoneParentPoseTransform
+  //                  + Translation
+  //    Start/Define mode T = NULL
+  /// Where the translation is the translation by the bone parent's tail
+  // The user is responsible for deleting the transformed received.
+  vtkTransform* CreatetWorldToBoneParentTransform();
+
   //Description
   // Set/Get if the bone Head is linked, i.e merged. with the parent Tail
   // When setting this to true, the bone Head is automatically snapped
