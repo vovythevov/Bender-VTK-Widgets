@@ -184,8 +184,8 @@ vtkBoneWidget::vtkBoneWidget()
   InitializeVector3(this->LocalRestTail);
   InitializeVector3(this->LocalPoseHead);
   InitializeVector3(this->LocalPoseTail);
-  InitializeVector3(this->TemporaryPoseHead);
-  InitializeVector3(this->TemporaryPoseTail);
+  InitializeVector3(this->InteractionWorldHead);
+  InitializeVector3(this->InteractionWorldTail);
 
   this->Roll = 0.0;
 
@@ -1124,8 +1124,8 @@ void vtkBoneWidget::BoneParentInteractionStopped()
   CopyQuaternion(this->PoseTransform, this->StartPoseTransform);
 
   //And update the pose point
-  this->GetBoneRepresentation()->GetHeadWorldPosition(this->TemporaryPoseHead);
-  this->GetBoneRepresentation()->GetTailWorldPosition(this->TemporaryPoseTail);
+  this->GetBoneRepresentation()->GetHeadWorldPosition(this->InteractionWorldHead);
+  this->GetBoneRepresentation()->GetTailWorldPosition(this->InteractionWorldTail);
 
   this->InvokeEvent(vtkBoneWidget::PoseInteractionStoppedEvent, NULL);
 }
@@ -1170,7 +1170,7 @@ void vtkBoneWidget::RebuildPoseTransform()
     this->GetBoneRepresentation()->GetTailWorldPosition( tail );
 
     // 2- Get the previous line directionnal vector
-    vtkMath::Subtract(this->TemporaryPoseTail, this->TemporaryPoseHead, previousLineVect);
+    vtkMath::Subtract(this->InteractionWorldTail, this->InteractionWorldHead, previousLineVect);
     vtkMath::Normalize(previousLineVect);
 
     // 3- Get the new line vector
@@ -1330,8 +1330,8 @@ void vtkBoneWidget::SetWidgetStateToPose()
   CopyVector3(this->LocalRestTail, this->LocalPoseTail);
   InitializeQuaternion(this->StartPoseTransform);
 
-  this->GetBoneRepresentation()->GetHeadWorldPosition(this->TemporaryPoseHead);
-  this->GetBoneRepresentation()->GetTailWorldPosition(this->TemporaryPoseTail);
+  this->GetBoneRepresentation()->GetHeadWorldPosition(this->InteractionWorldHead);
+  this->GetBoneRepresentation()->GetTailWorldPosition(this->InteractionWorldTail);
 
   if (this->WidgetState != vtkBoneWidget::Rest)
     {
@@ -1356,8 +1356,8 @@ void vtkBoneWidget::SetWidgetStateToRest()
 
   InitializeQuaternion(this->PoseTransform);
   InitializeQuaternion(this->StartPoseTransform);
-  InitializeVector3(this->TemporaryPoseHead);
-  InitializeVector3(this->TemporaryPoseTail);
+  InitializeVector3(this->InteractionWorldHead);
+  InitializeVector3(this->InteractionWorldTail);
   InitializeVector3(this->LocalPoseHead);
   InitializeVector3(this->LocalPoseTail);
 
@@ -1714,23 +1714,23 @@ void vtkBoneWidget::PrintSelf(ostream& os, vtkIndent indent)
                                 << "  " << this->LocalPoseTail[2]<< "\n";
 
   os << indent << "Temporary Points:" << "\n";
-  os << indent << "  Temporary Pose Head: "<< this->TemporaryPoseHead[0]
-                                << "  " << this->TemporaryPoseHead[1]
-                                << "  " << this->TemporaryPoseHead[2]<< "\n";
-  os << indent << "  Temporary Pose Tail: "<< this->TemporaryPoseTail[0]
-                                << "  " << this->TemporaryPoseTail[1]
-                                << "  " << this->TemporaryPoseTail[2]<< "\n";
+  os << indent << "  Interaction World Head: "<< this->InteractionWorldHead[0]
+                                << "  " << this->InteractionWorldHead[1]
+                                << "  " << this->InteractionWorldHead[2]<< "\n";
+  os << indent << "  Interaction World Tail: "<< this->InteractionWorldTail[0]
+                                << "  " << this->InteractionWorldTail[1]
+                                << "  " << this->InteractionWorldTail[2]<< "\n";
 
   os << indent << "Tranforms:" << "\n";
-  os << indent << "  RestTransform: "<< this->RestTransform[0]
+  os << indent << "  Rest Transform: "<< this->RestTransform[0]
                                 << "  " << this->RestTransform[1]
                                 << "  " << this->RestTransform[2]
                                 << "  " << this->RestTransform[3]<< "\n";
-  os << indent << "  PoseTransform: "<< this->PoseTransform[0]
+  os << indent << "  Pose Transform: "<< this->PoseTransform[0]
                                 << "  " << this->PoseTransform[1]
                                 << "  " << this->PoseTransform[2]
                                 << "  " << this->PoseTransform[3]<< "\n";
-  os << indent << "  StartPoseTransform: "<< this->StartPoseTransform[0]
+  os << indent << "  Start PoseTransform: "<< this->StartPoseTransform[0]
                                 << "  " << this->StartPoseTransform[1]
                                 << "  " << this->StartPoseTransform[2]
                                 << "  " << this->StartPoseTransform[3]<< "\n";

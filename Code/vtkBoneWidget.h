@@ -254,8 +254,8 @@ protected:
   double                      LocalRestTail[3];
   double                      LocalPoseHead[3];
   double                      LocalPoseTail[3];
-  double                      TemporaryPoseHead[3];
-  double                      TemporaryPoseTail[3];
+  double                      InteractionWorldHead[3];
+  double                      InteractionWorldTail[3];
   double                      StartPoseTransform[4];
   double                      Roll; // in radians
   double                      RestTransform[4];
