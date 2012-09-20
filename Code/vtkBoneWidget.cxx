@@ -657,20 +657,24 @@ void vtkBoneWidget::RebuildLocalRestPoints()
 {
   if (this->BoneParent)
     {
-    double axis[3], angle, *head, *tail;
+    double axis[3], angle;
 
     angle = QuaternionToAxisAngle(this->BoneParent->GetRestTransform(), axis);
     vtkMath::Normalize(axis);
 
-    vtkSmartPointer<vtkTransform> T = vtkSmartPointer<vtkTransform>::New();
-    T->Translate( this->BoneParent->GetBoneRepresentation()->GetPoint2WorldPosition() );
-    T->RotateWXYZ( vtkMath::DegreesFromRadians(angle), axis );
-    T->Inverse();
+    vtkSmartPointer<vtkTransform> transform =
+      vtkSmartPointer<vtkTransform>::New();
+    transform->Translate(
+      this->BoneParent->GetBoneRepresentation()->GetPoint2WorldPosition());
+    transform->RotateWXYZ( vtkMath::DegreesFromRadians(angle), axis );
+    transform->Inverse();
 
-    head = T->TransformDoublePoint(this->GetBoneRepresentation()->GetPoint1WorldPosition());
+    double* head = transform->TransformDoublePoint(
+      this->GetBoneRepresentation()->GetPoint1WorldPosition());
     CopyVector3(head, this->LocalRestHead);
 
-    tail = T->TransformDoublePoint(this->GetBoneRepresentation()->GetPoint2WorldPosition());
+    double* tail = transform->TransformDoublePoint(
+      this->GetBoneRepresentation()->GetPoint2WorldPosition());
     CopyVector3(tail, this->LocalRestTail);
     }
   else
@@ -694,16 +698,20 @@ void vtkBoneWidget::RebuildLocalPosePoints()
     double angle = QuaternionToAxisAngle(resultTransform, axis);
 
     //Make transform
-    vtkSmartPointer<vtkTransform> T = vtkSmartPointer<vtkTransform>::New();
-    T->Translate( this->BoneParent->GetBoneRepresentation()->GetPoint2WorldPosition() );
-    T->RotateWXYZ( vtkMath::DegreesFromRadians(angle), axis );
-    T->Inverse();
+    vtkSmartPointer<vtkTransform> transform =
+      vtkSmartPointer<vtkTransform>::New();
+    transform->Translate(
+      this->BoneParent->GetBoneRepresentation()->GetPoint2WorldPosition());
+    transform->RotateWXYZ( vtkMath::DegreesFromRadians(angle), axis );
+    transform->Inverse();
 
     //Transform points
-    double* head = T->TransformDoublePoint(this->GetBoneRepresentation()->GetPoint1WorldPosition());
+    double* head = transform->TransformDoublePoint(
+      this->GetBoneRepresentation()->GetPoint1WorldPosition());
     CopyVector3(head, this->LocalPoseHead);
 
-    double* tail = T->TransformDoublePoint(this->GetBoneRepresentation()->GetPoint2WorldPosition());
+    double* tail = transform->TransformDoublePoint(
+      this->GetBoneRepresentation()->GetPoint2WorldPosition());
     CopyVector3(tail, this->LocalPoseTail);
     }
   else
@@ -1174,14 +1182,16 @@ void vtkBoneWidget::BoneParentPoseChanged()
     vtkMath::Normalize(axis);
 
     //3- transform point
-    vtkSmartPointer<vtkTransform> T = vtkSmartPointer<vtkTransform>::New();
-    T->Translate(this->BoneParent->GetBoneRepresentation()->GetPoint2WorldPosition());
-    T->RotateWXYZ(vtkMath::DegreesFromRadians(angle), axis);
+    vtkSmartPointer<vtkTransform> transform =
+      vtkSmartPointer<vtkTransform>::New();
+    transform->Translate(
+      this->BoneParent->GetBoneRepresentation()->GetPoint2WorldPosition());
+    transform->RotateWXYZ(vtkMath::DegreesFromRadians(angle), axis);
 
-    double* newHead = T->TransformDoublePoint(this->LocalPoseHead);
+    double* newHead = transform->TransformDoublePoint(this->LocalPoseHead);
     this->GetBoneRepresentation()->SetPoint1WorldPosition(newHead);
 
-    double* newTail = T->TransformDoublePoint(this->LocalPoseTail);
+    double* newTail = transform->TransformDoublePoint(this->LocalPoseTail);
     this->GetBoneRepresentation()->SetPoint2WorldPosition(newTail);
 
     this->RebuildPoseTransform();
@@ -1421,16 +1431,17 @@ void vtkBoneWidget::SetWidgetStateToRest()
         this->BoneParent->GetRestTransform(), axis);
       vtkMath::Normalize(axis);
 
-      vtkSmartPointer<vtkTransform> t = vtkSmartPointer<vtkTransform>::New();
+      vtkSmartPointer<vtkTransform> transform =
+        vtkSmartPointer<vtkTransform>::New();
 
-      t->Translate(
+      transform->Translate(
         this->BoneParent->GetBoneRepresentation()->GetPoint2WorldPosition());
-      t->RotateWXYZ(vtkMath::DegreesFromRadians(angle), axis);
+      transform->RotateWXYZ(vtkMath::DegreesFromRadians(angle), axis);
 
-      double* newHead = t->TransformDoublePoint(this->LocalRestHead);
+      double* newHead = transform->TransformDoublePoint(this->LocalRestHead);
       this->GetBoneRepresentation()->SetPoint1WorldPosition(newHead);
 
-      double* newTail = t->TransformDoublePoint(this->LocalRestTail);
+      double* newTail = transform->TransformDoublePoint(this->LocalRestTail);
       this->GetBoneRepresentation()->SetPoint2WorldPosition(newTail);
       }
     else
@@ -1525,27 +1536,27 @@ void vtkBoneWidget::RebuildDebugAxes()
       angle = vtkBoneWidget::QuaternionToAxisAngle(resultTransform, axis);
       }
 
-    vtkSmartPointer<vtkTransform> T = vtkSmartPointer<vtkTransform>::New();
-    T->Translate( o );
-    T->RotateWXYZ( vtkMath::DegreesFromRadians(angle), axis );
+    vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+    transform->Translate( o );
+    transform->RotateWXYZ( vtkMath::DegreesFromRadians(angle), axis );
 
     vtkLineRepresentation::SafeDownCast(
       this->DebugX->GetRepresentation())->SetPoint1WorldPosition(o);
     vtkLineRepresentation::SafeDownCast(
       this->DebugX->GetRepresentation())->SetPoint2WorldPosition(
-        T->TransformDoublePoint(distance, 0.0, 0.0));
+        transform->TransformDoublePoint(distance, 0.0, 0.0));
 
     vtkLineRepresentation::SafeDownCast(
       this->DebugY->GetRepresentation())->SetPoint1WorldPosition(o);
     vtkLineRepresentation::SafeDownCast(
       this->DebugY->GetRepresentation())->SetPoint2WorldPosition(
-        T->TransformDoublePoint(0.0, distance, 0.0));
+        transform->TransformDoublePoint(0.0, distance, 0.0));
 
     vtkLineRepresentation::SafeDownCast(
       this->DebugZ->GetRepresentation())->SetPoint1WorldPosition(o);
     vtkLineRepresentation::SafeDownCast(
       this->DebugZ->GetRepresentation())->SetPoint2WorldPosition(
-        T->TransformDoublePoint(0.0, 0.0, distance));
+        transform->TransformDoublePoint(0.0, 0.0, distance));
 
     if (vtkLineRepresentation::SafeDownCast(
           this->DebugX->GetRepresentation())->GetVisibility() == 0)
@@ -1639,26 +1650,26 @@ vtkTransform* vtkBoneWidget::CreateWorldToBoneTransform()
   double origin[3];
   this->GetBoneRepresentation()->GetPoint1WorldPosition(origin);
 
-  vtkTransform* t = vtkTransform::New();
-  t->Translate( origin );
+  vtkTransform* transform = vtkTransform::New();
+  transform->Translate( origin );
 
-  double transform[4];
+  double resultTransform[4];
   if (this->WidgetState == Rest)
     {
-    CopyQuaternion(this->RestTransform, transform);
+    CopyQuaternion(this->RestTransform, resultTransform);
     }
   else //Pose mode
     {
     MultiplyQuaternion(this->BoneParent->GetPoseTransform(),
                        this->BoneParent->GetRestTransform(),
-                       transform);
-    NormalizeQuaternion(transform);
+                       resultTransform);
+    NormalizeQuaternion(resultTransform);
     }
 
   double axis[3];
-  double angle = QuaternionToAxisAngle(transform, axis);
-  t->RotateWXYZ(angle, axis);
-  return t;
+  double angle = QuaternionToAxisAngle(resultTransform, axis);
+  transform->RotateWXYZ(angle, axis);
+  return transform;
 }
 
 //----------------------------------------------------------------------
