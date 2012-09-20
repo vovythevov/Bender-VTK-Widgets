@@ -655,7 +655,7 @@ void vtkBoneWidget::RebuildRestTransform()
 //----------------------------------------------------------------------
 void vtkBoneWidget::RebuildLocalRestPoints()
 {
-  vtkSmartPointer<vtkTransform> transform =
+  vtkTransform* transform =
     this->CreatetWorldToBoneParentTransform();
   transform->Inverse();
 
@@ -666,12 +666,14 @@ void vtkBoneWidget::RebuildLocalRestPoints()
   double* tail = transform->TransformDoublePoint(
     this->GetBoneRepresentation()->GetTailWorldPosition());
   CopyVector3(tail, this->LocalRestTail);
+
+  transform->Delete();
 }
 
 //----------------------------------------------------------------------
 void vtkBoneWidget::RebuildLocalPosePoints()
 {
-  vtkSmartPointer<vtkTransform> transform =
+  vtkTransform* transform =
     this->CreatetWorldToBoneParentTransform();
   transform->Inverse();
 
@@ -682,6 +684,8 @@ void vtkBoneWidget::RebuildLocalPosePoints()
   double* tail = transform->TransformDoublePoint(
     this->GetBoneRepresentation()->GetTailWorldPosition());
   CopyVector3(tail, this->LocalPoseTail);
+
+  transform->Delete();
 }
 
 //----------------------------------------------------------------------
@@ -1129,7 +1133,7 @@ void vtkBoneWidget::BoneParentInteractionStopped()
 //-------------------------------------------------------------------------
 void vtkBoneWidget::BoneParentPoseChanged()
 {
-  vtkSmartPointer<vtkTransform> transform =
+  vtkTransform* transform =
     this->CreatetWorldToBoneParentTransform();
 
   double* newHead = transform->TransformDoublePoint(this->LocalPoseHead);
@@ -1137,6 +1141,8 @@ void vtkBoneWidget::BoneParentPoseChanged()
 
   double* newTail = transform->TransformDoublePoint(this->LocalPoseTail);
   this->GetBoneRepresentation()->SetTailWorldPosition(newTail);
+
+  transform->Delete();
 
   this->RebuildPoseTransform();
   this->RebuildDebugAxes();
@@ -1368,14 +1374,15 @@ void vtkBoneWidget::SetWidgetStateToRest()
   else // previous state was pose
     {
     //We need to reset the points to their original rest position
-    vtkSmartPointer<vtkTransform> transform =
-      this->CreatetWorldToBoneParentTransform();
+    vtkTransform* transform = this->CreatetWorldToBoneParentTransform();
 
     double* newHead = transform->TransformDoublePoint(this->LocalRestHead);
     this->GetBoneRepresentation()->SetHeadWorldPosition(newHead);
 
     double* newTail = transform->TransformDoublePoint(this->LocalRestTail);
     this->GetBoneRepresentation()->SetTailWorldPosition(newTail);
+
+    transform->Delete();
     }
 
   this->WidgetState = vtkBoneWidget::Rest;
