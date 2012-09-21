@@ -315,44 +315,35 @@ void vtkBoneWidget::SetHeadWorldPosition(double x, double y, double z)
 //----------------------------------------------------------------------
 void vtkBoneWidget::SetHeadWorldPosition(double head[3])
 {
-  switch (this->WidgetState)
+  double diff[3];
+  vtkMath::Subtract(head,
+                    this->GetBoneRepresentation()->GetHeadWorldPosition(),
+                    diff);
+  if (vtkMath::Norm(diff) < 1e-13)
     {
-    case vtkBoneWidget::Start:
-      {
-      vtkErrorMacro("Cannot Set Head Position in Start Mode. "
-                    "Use Rest Mode for this."
-                    "\n-> Doing Nothing");
-      break;
-      }
-    case vtkBoneWidget::Define:
-      {
-      this->GetBoneRepresentation()->SetHeadWorldPosition(head);
-      break;
-      }
-    case vtkBoneWidget::Rest:
-      {
-      this->GetBoneRepresentation()->SetHeadWorldPosition(head);
-      this->RebuildRestTransform();
-      this->RebuildLocalRestPoints();
-      this->RebuildAxes();
-      this->RebuildParentageLink();
-
-      this->InvokeEvent(vtkBoneWidget::RestChangedEvent, NULL);
-      break;
-      }
-    case vtkBoneWidget::Pose:
-      {
-      vtkErrorMacro("Cannot Set Head Position in Pose Mode."
-                    "Point 1 is assumed never to move. Use Rest Mode for this."
-                    "\n-> Doing Nothing");
-      break;
-      }
-    default:
-      {
-      vtkErrorMacro("Widget is in an unknown mode. Cannot set Head");
-      break;
-      }
+    return;
     }
+
+  if (this->WidgetState == vtkBoneWidget::Pose)
+    {
+    vtkErrorMacro("Cannot set tail position in head mode."
+                  " Use the interaction of the rotation methods instead");
+    return;
+    }
+
+  this->GetBoneRepresentation()->SetHeadWorldPosition(head);
+
+  if (this->WidgetState == vtkBoneWidget::Rest)
+    {
+    this->RebuildRestTransform();
+    this->RebuildLocalRestPoints();
+
+    this->InvokeEvent(vtkBoneWidget::RestChangedEvent, NULL);
+    }
+
+  this->RebuildAxes();
+  this->RebuildParentageLink();
+  this->Modified();
 }
 
 //----------------------------------------------------------------------
@@ -383,63 +374,36 @@ void vtkBoneWidget::SetTailWorldPosition(double x, double y, double z)
 //----------------------------------------------------------------------
 void vtkBoneWidget::SetTailWorldPosition(double tail[3])
 {
-  switch (this->WidgetState)
+  double diff[3];
+  vtkMath::Subtract(tail,
+                    this->GetBoneRepresentation()->GetTailWorldPosition(),
+                    diff);
+  if (vtkMath::Norm(diff) < 1e-13)
     {
-    case vtkBoneWidget::Start:
-      {
-      vtkErrorMacro("Cannot Set Tail Position in Start Mode. "
-                    "Use Rest Mode for this."
-                    "\n-> Doing Nothing");
-      break;
-      }
-    case vtkBoneWidget::Define:
-      {
-      vtkErrorMacro("Cannot Set Tail Position in Define Mode. "
-                    "Use Rest Mode for this."
-                    "\n-> Doing Nothing");
-      break;
-      }
-    case vtkBoneWidget::Rest:
-      {
-      this->GetBoneRepresentation()->SetTailWorldPosition(tail);
-      this->RebuildRestTransform();
-      this->RebuildLocalRestPoints();
-      this->RebuildAxes();
-      this->RebuildParentageLink();
-
-      this->Modified();
-      this->InvokeEvent(vtkBoneWidget::RestChangedEvent, NULL);
-      break;
-      }
-    case vtkBoneWidget::Pose:
-      {
-      double head[3], tail[3], lineVect[3];
-      double distance = this->GetBoneRepresentation()->GetDistance();
-
-      this->GetBoneRepresentation()->GetHeadWorldPosition(head);
-      this->GetBoneRepresentation()->GetTailWorldPosition(tail);
-
-      vtkMath::Subtract(tail, head, lineVect);
-      vtkMath::Normalize(lineVect);
-      vtkMath::MultiplyScalar(lineVect, distance);
-      vtkMath::Add(head, lineVect, tail);
-
-      this->GetBoneRepresentation()->SetTailWorldPosition(tail);
-
-      this->RebuildPoseTransform();
-      //this->RebuildLocalPoints();
-      this->RebuildAxes();
-      this->RebuildParentageLink();
-
-      this->InvokeEvent(vtkBoneWidget::PoseChangedEvent, NULL);
-      break;
-      }
-    default:
-      {
-      vtkErrorMacro("Widget is in an unknown mode. Cannot set Tail");
-      break;
-      }
+    return;
     }
+
+  if (this->WidgetState == vtkBoneWidget::Pose)
+    {
+    vtkErrorMacro("Cannot set tail position in pose mode."
+                  " Use the interaction of the rotation methods instead");
+    return;
+    }
+
+  this->GetBoneRepresentation()->SetTailWorldPosition(tail);
+
+  if (this->WidgetState == vtkBoneWidget::Rest)
+    {
+    this->RebuildRestTransform();
+    this->RebuildLocalRestPoints();
+
+    this->InvokeEvent(vtkBoneWidget::RestChangedEvent, NULL);
+    }
+
+  this->RebuildAxes();
+  this->RebuildParentageLink();
+
+  this->Modified();
 }
 
 //----------------------------------------------------------------------
@@ -1359,11 +1323,6 @@ void vtkBoneWidget::SetWidgetStateToRest()
 //----------------------------------------------------------------------
 void vtkBoneWidget::SetAxesVisibility(int visibility)
 {
-  if (this->BoneParent)
-    {
-    std::cout<<"In Sons"<<std::endl;
-    }
-
   if (this->AxesVisibility == visibility)
     {
     return;
@@ -1371,12 +1330,6 @@ void vtkBoneWidget::SetAxesVisibility(int visibility)
 
   this->AxesVisibility = visibility;
   this->UpdateAxesVisibility();
-
-  if (this->BoneParent)
-    {
-    std::cout<<"  "<<this->AxesActor->GetVisibility()<<std::endl;
-    }
-
 }
 
 //----------------------------------------------------------------------
