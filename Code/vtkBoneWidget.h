@@ -307,6 +307,7 @@ protected:
   void RebuildAxes();
   void RebuildParentageLink();
 
+  void UpdateParentageLinkVisibility();
   void UpdateAxesVisibility();
 
   // Description:

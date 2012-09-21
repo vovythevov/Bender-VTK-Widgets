@@ -252,7 +252,6 @@ vtkBoneWidget::vtkBoneWidget()
   this->AxesSize = 0.2;
 
   this->UpdateAxesVisibility();
-  this->RebuildParentageLink();
 }
 
 //----------------------------------------------------------------------
@@ -288,6 +287,18 @@ void vtkBoneWidget::CreateDefaultRepresentation()
 
   vtkBoneRepresentation::SafeDownCast(this->WidgetRep)->
     InstantiateHandleRepresentation();
+
+  //
+  //The parent line
+  this->ParentageLink->SetInteractor(this->Interactor);
+  this->ParentageLink->SetCurrentRenderer(this->CurrentRenderer);
+  this->ParentageLink->CreateDefaultRepresentation();
+
+  // Dotted line
+  this->ParentageLink->GetLineRepresentation()
+    ->GetLineProperty()->SetLineStipplePattern(0x000f);
+  this->ParentageLink->SetProcessEvents(0);
+  this->UpdateParentageLinkVisibility();
 }
 
 //----------------------------------------------------------------------
@@ -433,6 +444,9 @@ void vtkBoneWidget::RotateTailWXYZ(double angle, double axis[3])
 
     CopyQuaternion(this->PoseTransform, this->StartPoseTransform);
     this->InvokeEvent(vtkBoneWidget::PoseChangedEvent, NULL);
+
+    this->RebuildAxes();
+    this->RebuildParentageLink();
     }
   else
     {
@@ -512,7 +526,7 @@ void vtkBoneWidget::SetBoneParent(vtkBoneWidget* parent)
       {
       this->LinkHeadToParent();
       }
-    this->RebuildParentageLink();
+    this->UpdateAxesVisibility();
 
     this->RebuildLocalRestPoints();
     }
@@ -521,6 +535,8 @@ void vtkBoneWidget::SetBoneParent(vtkBoneWidget* parent)
     this->GetBoneRepresentation()->GetHeadWorldPosition(this->LocalRestHead);
     this->GetBoneRepresentation()->GetTailWorldPosition(this->LocalRestTail);
     }
+
+  this->Modified();
 }
 
 //----------------------------------------------------------------------
@@ -726,12 +742,11 @@ void vtkBoneWidget::SetEnabled(int enabling)
         {
         this->HeadWidget->SetInteractor(this->Interactor);
         this->TailWidget->SetInteractor(this->Interactor);
-
-        this->ParentageLink->SetInteractor(this->Interactor);
         }
 
       this->HeadWidget->SetEnabled(1);
       this->TailWidget->SetEnabled(1);
+      this->ParentageLink->SetEnabled(1);
       }
 
     if (this->HeadWidget)
@@ -752,6 +767,14 @@ void vtkBoneWidget::SetEnabled(int enabling)
       this->TailWidget->GetRepresentation()->SetRenderer(
         this->CurrentRenderer);
       }
+
+    if (this->ParentageLink)
+      {
+      this->ParentageLink->SetInteractor(this->Interactor);
+      this->ParentageLink->SetCurrentRenderer(this->CurrentRenderer);
+
+      this->UpdateParentageLinkVisibility();
+      }
     }
   else //disabling widget
     {
@@ -762,6 +785,10 @@ void vtkBoneWidget::SetEnabled(int enabling)
     if (this->TailWidget)
       {
       this->TailWidget->SetEnabled(0);
+      }
+    if (this->ParentageLink)
+      {
+      this->SetEnabled(0);
       }
     }
 
@@ -842,6 +869,8 @@ void vtkBoneWidget::AddPointAction(vtkAbstractWidget *w)
       vtkBoneRepresentation::SafeDownCast(self->WidgetRep)->SetHeadDisplayPosition(e);
       self->HeadWidget->SetEnabled(1);
       }
+
+    self->Modified();
     }
 
   // If defining we are placing the second or third point
@@ -859,6 +888,8 @@ void vtkBoneWidget::AddPointAction(vtkAbstractWidget *w)
     self->RebuildLocalRestPoints();
     self->RebuildAxes();
     self->RebuildParentageLink();
+
+    self->Modified();
     }
 
   else if ( self->WidgetState == vtkBoneWidget::Rest 
@@ -943,6 +974,7 @@ void vtkBoneWidget::MoveAction(vtkAbstractWidget *w)
       // \todo: factorize call to InteractionEvent and SetAbortFlag
       //self->InvokeEvent(vtkBoneWidget::RestChangedEvent, NULL);
       self->InvokeEvent(vtkCommand::InteractionEvent,NULL);
+      self->Modified();
       }
 
     else if ( self->TailSelected )
@@ -955,6 +987,7 @@ void vtkBoneWidget::MoveAction(vtkAbstractWidget *w)
 
       self->InvokeEvent(vtkBoneWidget::RestChangedEvent, NULL);
       self->InvokeEvent(vtkCommand::InteractionEvent,NULL);
+      self->Modified();
       }
 
     else if ( self->BoneSelected )
@@ -973,6 +1006,7 @@ void vtkBoneWidget::MoveAction(vtkAbstractWidget *w)
 
       self->InvokeEvent(vtkBoneWidget::RestChangedEvent, NULL);
       self->InvokeEvent(vtkCommand::InteractionEvent,NULL);
+      self->Modified();
       }
     }
 
@@ -1065,6 +1099,7 @@ void vtkBoneWidget::MoveAction(vtkAbstractWidget *w)
 
       self->InvokeEvent(vtkBoneWidget::PoseChangedEvent, NULL);
       self->InvokeEvent(vtkCommand::InteractionEvent,NULL);
+      self->Modified();
       }
     else if ( self->BoneSelected )
       {
@@ -1083,6 +1118,7 @@ void vtkBoneWidget::MoveAction(vtkAbstractWidget *w)
 
         self->InvokeEvent(vtkBoneWidget::PoseChangedEvent, NULL);
         self->InvokeEvent(vtkCommand::InteractionEvent,NULL);
+        self->Modified();
         }
       }
     }
@@ -1159,6 +1195,7 @@ void vtkBoneWidget::BoneParentPoseChanged()
   this->RebuildAxes();
   this->RebuildParentageLink();
   this->InvokeEvent(vtkBoneWidget::PoseChangedEvent, NULL);
+  this->Modified();
 }
 
 //-------------------------------------------------------------------------
@@ -1245,6 +1282,7 @@ void vtkBoneWidget::BoneParentRestChanged()
     this->LinkHeadToParent();
     }
   this->RebuildParentageLink();
+  this->Modified();
 }
 
 //----------------------------------------------------------------------
@@ -1329,7 +1367,7 @@ void vtkBoneWidget::SetWidgetState(int state)
         transform->Delete();
         }
 
-      //Update ohers
+      //Update others
       this->UpdateAxesVisibility();
       this->RebuildParentageLink();
 
@@ -1401,6 +1439,24 @@ void vtkBoneWidget::SetAxesVisibility(int visibility)
 
   this->AxesVisibility = visibility;
   this->UpdateAxesVisibility();
+  this->Modified();
+}
+
+//----------------------------------------------------------------------
+void vtkBoneWidget::UpdateParentageLinkVisibility()
+{
+  if (this->ShowParentage
+      && !this->HeadLinkedToParent
+      && this->BoneParent)
+    {
+    this->ParentageLink->GetLineRepresentation()->SetVisibility(1);
+    }
+  else
+    {
+    this->ParentageLink->GetLineRepresentation()->SetVisibility(0);
+    }
+
+  this->RebuildParentageLink();
 }
 
 //----------------------------------------------------------------------
@@ -1423,24 +1479,13 @@ void vtkBoneWidget::UpdateAxesVisibility()
 //----------------------------------------------------------------------
 void vtkBoneWidget::RebuildParentageLink()
 {
-  vtkLineRepresentation* rep=
-      vtkLineRepresentation::SafeDownCast(
-        this->ParentageLink->GetRepresentation());
-
-  if (this->ShowParentage && this->BoneParent && ! this->HeadLinkedToParent
-      && (this->WidgetState == vtkBoneWidget::Rest
-          || this->WidgetState == vtkBoneWidget::Pose))
+  if (this->ParentageLink->GetLineRepresentation()->GetVisibility())
     {
-    rep->SetVisibility(1);
-
-    rep->SetPoint1WorldPosition(
+    this->ParentageLink->GetLineRepresentation()->SetPoint1WorldPosition(
       this->BoneParent->GetBoneRepresentation()->GetTailWorldPosition());
-    rep->SetPoint2WorldPosition(
+
+    this->ParentageLink->GetLineRepresentation()->SetPoint2WorldPosition(
       this->GetBoneRepresentation()->GetHeadWorldPosition());
-    }
-  else
-    {
-    rep->SetVisibility(0);
     }
 }
 
@@ -1503,6 +1548,10 @@ void vtkBoneWidget::SetHeadLinkedToParent(int link)
       this->ParentageLink->GetRepresentation());
   rep->SetVisibility(!link && this->ShowParentage);
   this->ParentageLink->SetEnabled(!link);
+
+  this->UpdateParentageLinkVisibility();
+
+  this->Modified();
 }
 
 //----------------------------------------------------------------------
@@ -1540,15 +1589,16 @@ void vtkBoneWidget::LinkTailToChild(vtkBoneWidget* child)
 //----------------------------------------------------------------------
 void vtkBoneWidget::SetShowParentage(int parentage)
 {
-  if (this->HeadLinkedToParent == parentage)
+  if (this->ShowParentage == parentage)
     {
     return;
     }
+
   this->ShowParentage = parentage;
-  vtkLineRepresentation* rep=
-    vtkLineRepresentation::SafeDownCast(
-      this->ParentageLink->GetRepresentation());
-  rep->SetVisibility(!this->HeadLinkedToParent && this->ShowParentage);
+  this->UpdateParentageLinkVisibility();
+  this->RebuildParentageLink();
+
+  this->Modified();
 }
 
 //----------------------------------------------------------------------
