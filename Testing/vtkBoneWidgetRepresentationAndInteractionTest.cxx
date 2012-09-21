@@ -37,6 +37,8 @@
 #include <vtkAppendPolyData.h>
 #include <vtkTransformPolyDataFilter.h>
 #include <vtkTransform.h>
+#include <vtkAxesActor.h>
+
 
 #include <vtkInteractorStyleTrackballCamera.h>
 
@@ -110,8 +112,25 @@ class KeyPressInteractorStyle : public vtkInteractorStyleTrackballCamera
           Widget->SetRepresentation(cylinderRep);
           }
         }
+      else if (key == "u")
+        {
+        std::cout<<"here"<<std::endl;
+        double axis[3];
+        vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+        transform->Translate( Widget->GetTailWorldPosition() );
+
+        double angle = vtkBoneWidget::QuaternionToAxisAngle(Widget->GetRestTransform(), axis);
+        transform->RotateWXYZ(vtkMath::DegreesFromRadians(angle), axis[0], axis[1], axis[2]);
+
+        Axes->SetUserTransform(transform);
+        }
+      else if (key == "h")
+        {
+        Axes->SetVisibility( !Axes->GetVisibility() );
+        }
       }
 
+  vtkAxesActor*  Axes;
   vtkBoneWidget* Widget;
 };
 
@@ -130,26 +149,28 @@ int vtkBoneWidgetRepresentationAndInteractionTest(int, char *[])
   vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = 
     vtkSmartPointer<vtkRenderWindowInteractor>::New();
   renderWindowInteractor->SetRenderWindow(renderWindow);
- 
+
   vtkSmartPointer<vtkBoneWidget> BoneWidget = 
     vtkSmartPointer<vtkBoneWidget>::New();
   BoneWidget->SetInteractor(renderWindowInteractor);
   //Test Line
   BoneWidget->CreateDefaultRepresentation();
 
+  vtkSmartPointer<vtkAxesActor> axes = vtkSmartPointer<vtkAxesActor>::New();
+  renderer->AddActor(axes);
+
   //Setup callbacks
   vtkSmartPointer<KeyPressInteractorStyle> style = 
     vtkSmartPointer<KeyPressInteractorStyle>::New();
   renderWindowInteractor->SetInteractorStyle(style);
   style->Widget = BoneWidget;
+  style->Axes = axes;
   style->SetCurrentRenderer(renderer);
- 
+
   // Render
   renderWindow->Render();
-  renderWindowInteractor->Initialize();
-  renderWindow->Render();
   BoneWidget->On();
-  //AxesWidget->On();
+  renderWindow->Render();
 
   // Begin mouse interaction
   renderWindowInteractor->Start();

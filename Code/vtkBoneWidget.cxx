@@ -24,8 +24,10 @@
 #include "vtkBoneRepresentation.h"
 
 //VTK Includes
+#include <vtkAxesActor.h>
 #include <vtkCallbackCommand.h>
 #include <vtkCamera.h>
+#include <vtkCaptionActor2D.h>
 #include <vtkCommand.h>
 #include <vtkHandleRepresentation.h>
 #include <vtkHandleWidget.h>
@@ -244,24 +246,25 @@ vtkBoneWidget::vtkBoneWidget()
   this->ParentageLink = vtkLineWidget2::New();
 
   //Debug axes init
-  this->DebugAxes = vtkBoneWidget::Nothing;
-  this->DebugX = vtkLineWidget2::New();
-  this->DebugY = vtkLineWidget2::New();
-  this->DebugZ = vtkLineWidget2::New();
-  this->DebugAxesSize = 0.2;
+  this->AxesVisibility = vtkBoneWidget::Nothing;
+  this->AxesActor = vtkAxesActor::New();
+  this->AxesActor->SetAxisLabels(0);
+  this->AxesSize = 0.2;
 
-  this->RebuildDebugAxes();
+  this->UpdateAxesVisibility();
   this->RebuildParentageLink();
 }
 
 //----------------------------------------------------------------------
 vtkBoneWidget::~vtkBoneWidget()
 {
-  this->ParentageLink->Delete();
+  if(this->CurrentRenderer)
+    {
+    this->CurrentRenderer->RemoveActor(this->AxesActor);
+    }
+  this->AxesActor->Delete();
 
-  this->DebugX->Delete();
-  this->DebugY->Delete();
-  this->DebugZ->Delete();
+  this->ParentageLink->Delete();
 
   this->HeadWidget->RemoveObserver(this->BoneWidgetCallback1);
   this->HeadWidget->Delete();
@@ -285,46 +288,6 @@ void vtkBoneWidget::CreateDefaultRepresentation()
 
   vtkBoneRepresentation::SafeDownCast(this->WidgetRep)->
     InstantiateHandleRepresentation();
-
-  //Init the debug axes
-  this->DebugX->SetInteractor(this->Interactor);
-  this->DebugX->GetRepresentation()->SetRenderer(this->CurrentRenderer);
-  this->DebugX->CreateDefaultRepresentation();
-  this->DebugX->SetEnabled(1);
-  vtkLineRepresentation::SafeDownCast(DebugX->GetRepresentation())->SetLineColor(1.0, 0.0, 0.0);
-  this->DebugX->SetProcessEvents(0); //So the debug axes aren't interacting
-  // vvvv So the axes aren't highlighted vvvv
-  vtkLineRepresentation::SafeDownCast(DebugX->GetRepresentation())->SetRepresentationState(0);
-
-  this->DebugY->SetInteractor(this->Interactor);
-  this->DebugY->GetRepresentation()->SetRenderer(this->CurrentRenderer);
-  this->DebugY->CreateDefaultRepresentation();
-  this->DebugY->SetEnabled(1);
-  vtkLineRepresentation::SafeDownCast(DebugY->GetRepresentation())->SetLineColor(0.0, 1.0, 0.0);
-  this->DebugY->SetProcessEvents(0); //So the debug axes aren't interacting
-  // vvvv So the axes aren't highlighted vvvv
-  vtkLineRepresentation::SafeDownCast(DebugY->GetRepresentation())->SetRepresentationState(0);
-
-  this->DebugZ->SetInteractor(this->Interactor);
-  this->DebugZ->GetRepresentation()->SetRenderer(this->CurrentRenderer);
-  this->DebugZ->CreateDefaultRepresentation();
-  this->DebugZ->SetEnabled(1);
-  vtkLineRepresentation::SafeDownCast(DebugZ->GetRepresentation())->SetLineColor(0.0, 0.0, 1.0);
-  this->DebugZ->SetProcessEvents(0); //So the debug axes aren't interacting
-  // vvvv So the axes aren't highlighted vvvv
-  vtkLineRepresentation::SafeDownCast(DebugZ->GetRepresentation())->SetRepresentationState(0);
-
-  this->ParentageLink->SetInteractor(this->Interactor);
-  this->ParentageLink->GetRepresentation()->SetRenderer(this->CurrentRenderer);
-  this->ParentageLink->CreateDefaultRepresentation();
-  //make dotted line
-  vtkLineRepresentation::SafeDownCast(ParentageLink->GetRepresentation())
-    ->GetLineProperty()->SetLineStipplePattern(0xf0f0);
-  this->ParentageLink->SetEnabled(1);
-  this->ParentageLink->SetProcessEvents(0); //So the link isn't interacting
-  // vvvv So the link isn't highlighted vvvv
-  vtkLineRepresentation::SafeDownCast(ParentageLink->GetRepresentation())->SetRepresentationState(0);
-
 }
 
 //----------------------------------------------------------------------
@@ -371,7 +334,7 @@ void vtkBoneWidget::SetHeadWorldPosition(double head[3])
       this->GetBoneRepresentation()->SetHeadWorldPosition(head);
       this->RebuildRestTransform();
       this->RebuildLocalRestPoints();
-      this->RebuildDebugAxes();
+      this->RebuildAxes();
       this->RebuildParentageLink();
 
       this->InvokeEvent(vtkBoneWidget::RestChangedEvent, NULL);
@@ -441,7 +404,7 @@ void vtkBoneWidget::SetTailWorldPosition(double tail[3])
       this->GetBoneRepresentation()->SetTailWorldPosition(tail);
       this->RebuildRestTransform();
       this->RebuildLocalRestPoints();
-      this->RebuildDebugAxes();
+      this->RebuildAxes();
       this->RebuildParentageLink();
 
       this->Modified();
@@ -465,7 +428,7 @@ void vtkBoneWidget::SetTailWorldPosition(double tail[3])
 
       this->RebuildPoseTransform();
       //this->RebuildLocalPoints();
-      this->RebuildDebugAxes();
+      this->RebuildAxes();
       this->RebuildParentageLink();
 
       this->InvokeEvent(vtkBoneWidget::PoseChangedEvent, NULL);
@@ -729,9 +692,6 @@ void vtkBoneWidget::SetEnabled(int enabling)
         this->HeadWidget->SetInteractor(this->Interactor);
         this->TailWidget->SetInteractor(this->Interactor);
 
-        this->DebugX->SetInteractor(this->Interactor);
-        this->DebugY->SetInteractor(this->Interactor);
-        this->DebugZ->SetInteractor(this->Interactor);
         this->ParentageLink->SetInteractor(this->Interactor);
         }
 
@@ -757,6 +717,12 @@ void vtkBoneWidget::SetEnabled(int enabling)
       this->TailWidget->GetRepresentation()->SetRenderer(
         this->CurrentRenderer);
       }
+
+    if (this->CurrentRenderer)
+      {
+      this->CurrentRenderer->AddActor(this->AxesActor);
+      }
+    this->SetAxesVisibility(vtkBoneWidget::Nothing);
     }
   else //disabling widget
     {
@@ -768,10 +734,16 @@ void vtkBoneWidget::SetEnabled(int enabling)
       {
       this->TailWidget->SetEnabled(0);
       }
+
+    if (this->CurrentRenderer)
+      {
+      this->CurrentRenderer->RemoveActor(this->AxesActor);
+      }
+    this->SetAxesVisibility(vtkBoneWidget::Nothing);
     }
 
   this->Superclass::SetEnabled(enabling);
-  this->RebuildDebugAxes();
+  this->RebuildAxes();
 }
 
 //----------------------------------------------------------------------
@@ -845,7 +817,7 @@ void vtkBoneWidget::AddPointAction(vtkAbstractWidget *w)
 
     self->RebuildRestTransform();
     self->RebuildLocalRestPoints();
-    self->RebuildDebugAxes();
+    self->RebuildAxes();
     self->RebuildParentageLink();
     }
 
@@ -925,7 +897,7 @@ void vtkBoneWidget::MoveAction(vtkAbstractWidget *w)
       self->GetBoneRepresentation()->SetHeadDisplayPosition(e);
       self->RebuildRestTransform();
       self->RebuildLocalRestPoints();
-      self->RebuildDebugAxes();
+      self->RebuildAxes();
       self->RebuildParentageLink();
 
       // \todo: factorize call to InteractionEvent and SetAbortFlag
@@ -938,7 +910,7 @@ void vtkBoneWidget::MoveAction(vtkAbstractWidget *w)
       self->GetBoneRepresentation()->SetTailDisplayPosition(e);
       self->RebuildRestTransform();
       self->RebuildLocalRestPoints();
-      self->RebuildDebugAxes();
+      self->RebuildAxes();
       self->RebuildParentageLink();
 
       self->InvokeEvent(vtkBoneWidget::RestChangedEvent, NULL);
@@ -951,7 +923,7 @@ void vtkBoneWidget::MoveAction(vtkAbstractWidget *w)
       vtkBoneRepresentation::SafeDownCast(self->WidgetRep)->WidgetInteraction(e);
       self->RebuildRestTransform();
       self->RebuildLocalRestPoints();
-      self->RebuildDebugAxes();
+      self->RebuildAxes();
       self->RebuildParentageLink();
 
       if (self->HeadLinkedToParent && self->BoneParent)
@@ -1048,7 +1020,7 @@ void vtkBoneWidget::MoveAction(vtkAbstractWidget *w)
 
       self->RebuildPoseTransform();
       self->RebuildLocalPosePoints();
-      self->RebuildDebugAxes();
+      self->RebuildAxes();
       self->RebuildParentageLink();
 
       self->InvokeEvent(vtkBoneWidget::PoseChangedEvent, NULL);
@@ -1066,7 +1038,7 @@ void vtkBoneWidget::MoveAction(vtkAbstractWidget *w)
 
         self->RebuildPoseTransform();
         self->RebuildLocalPosePoints();
-        self->RebuildDebugAxes();
+        self->RebuildAxes();
         self->RebuildParentageLink();
 
         self->InvokeEvent(vtkBoneWidget::PoseChangedEvent, NULL);
@@ -1144,7 +1116,7 @@ void vtkBoneWidget::BoneParentPoseChanged()
   transform->Delete();
 
   this->RebuildPoseTransform();
-  this->RebuildDebugAxes();
+  this->RebuildAxes();
   this->RebuildParentageLink();
   this->InvokeEvent(vtkBoneWidget::PoseChangedEvent, NULL);
 }
@@ -1312,7 +1284,7 @@ void vtkBoneWidget::SetWidgetStateToStart()
   
   this->WidgetRep->Highlight(0);
 
-  this->RebuildDebugAxes();
+  this->UpdateAxesVisibility();
   this->RebuildParentageLink();
   this->SetEnabled(this->GetEnabled()); // show/hide the handles properly
   this->ReleaseFocus();
@@ -1339,8 +1311,11 @@ void vtkBoneWidget::SetWidgetStateToPose()
   this->WidgetState = vtkBoneWidget::Pose;
 
   this->RebuildPoseTransform();
-  this->RebuildDebugAxes();
-  this->RebuildParentageLink();
+  if (!this->BoneParent)
+    std::cout<<"Axis visibility: "<<this->AxesVisibility<<std::endl;
+  this->UpdateAxesVisibility();
+  if (!this->BoneParent)
+    std::cout<<"Axis visibility: "<<this->AxesVisibility<<std::endl;
 
   this->SetEnabled(this->GetEnabled()); // show/hide the handles properly
   this->ReleaseFocus();
@@ -1386,17 +1361,34 @@ void vtkBoneWidget::SetWidgetStateToRest()
 
   this->WidgetState = vtkBoneWidget::Rest;
 
-  this->RebuildDebugAxes();
+  this->UpdateAxesVisibility();
   this->RebuildParentageLink();
   this->SetEnabled(this->GetEnabled()); // show/hide the handles properly
   this->ReleaseFocus();
 }
 
 //----------------------------------------------------------------------
-void vtkBoneWidget::SetDebugAxes(int debugAxes)
+void vtkBoneWidget::SetAxesVisibility(int visibility)
 {
-  this->DebugAxes = debugAxes;
-  this->RebuildDebugAxes();
+  this->AxesVisibility = visibility;
+  this->UpdateAxesVisibility();
+}
+
+//----------------------------------------------------------------------
+void vtkBoneWidget::UpdateAxesVisibility()
+{
+  if (this->AxesVisibility == vtkBoneWidget::Nothing
+      || this->WidgetState == vtkBoneWidget::Start
+      || this->WidgetState == vtkBoneWidget::Define)
+    {
+    this->AxesActor->SetVisibility(0);
+    }
+  else
+    {
+    this->AxesActor->SetVisibility(1);
+    }
+
+  this->RebuildAxes();
 }
 
 //----------------------------------------------------------------------
@@ -1424,41 +1416,25 @@ void vtkBoneWidget::RebuildParentageLink()
 }
 
 //----------------------------------------------------------------------
-void vtkBoneWidget::RebuildDebugAxes()
+void vtkBoneWidget::RebuildAxes()
 {
-  if (this->DebugAxes == vtkBoneWidget::Nothing
-      || this->WidgetState == vtkBoneWidget::Start
-      || this->WidgetState == vtkBoneWidget::Define)
+  // only update axes if they are visible to prevent unecessary computation
+  if (this->AxesActor->GetVisibility())
     {
-    if (vtkLineRepresentation::SafeDownCast(
-          this->DebugX->GetRepresentation())->GetVisibility() == 1)
-      {
-      vtkLineRepresentation::SafeDownCast(
-        this->DebugX->GetRepresentation())->SetVisibility(0);
-      vtkLineRepresentation::SafeDownCast(
-        this->DebugY->GetRepresentation())->SetVisibility(0);
-      vtkLineRepresentation::SafeDownCast(
-        this->DebugZ->GetRepresentation())->SetVisibility(0);
-      }
-    }
-  else if (this->DebugAxes == vtkBoneWidget::ShowRestTransform
-           || this->DebugAxes == vtkBoneWidget::ShowPoseTransform
-           || this->DebugAxes == vtkBoneWidget::ShowPoseTransformAndRestTransform)
-    {
-    double o[3], axis[3], angle;
     double distance =
-      this->GetBoneRepresentation()->GetDistance() * this->DebugAxesSize;
-    this->GetBoneRepresentation()->GetTailWorldPosition(o);
-      
-    if (this->DebugAxes == vtkBoneWidget::ShowRestTransform)
+      this->GetBoneRepresentation()->GetDistance() * this->AxesSize;
+    this->AxesActor->SetTotalLength(distance, distance, distance);
+
+    double axis[3], angle;
+    if (this->AxesVisibility == vtkBoneWidget::ShowRestTransform)
       {
       angle = vtkBoneWidget::QuaternionToAxisAngle(this->RestTransform, axis);
       }
-    else if (this->DebugAxes == vtkBoneWidget::ShowPoseTransform)
+    else if (this->AxesVisibility == vtkBoneWidget::ShowPoseTransform)
       {
       angle = vtkBoneWidget::QuaternionToAxisAngle(this->PoseTransform, axis);
       }
-    else if (this->DebugAxes == vtkBoneWidget::ShowPoseTransformAndRestTransform)
+    else if (this->AxesVisibility == vtkBoneWidget::ShowPoseTransformAndRestTransform)
       {
       double resultTransform[4];
       MultiplyQuaternion(this->GetPoseTransform(),
@@ -1470,41 +1446,10 @@ void vtkBoneWidget::RebuildDebugAxes()
       }
 
     vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
-    transform->Translate( o );
+    transform->Translate( this->GetBoneRepresentation()->GetTailWorldPosition() );
     transform->RotateWXYZ( vtkMath::DegreesFromRadians(angle), axis );
 
-    vtkLineRepresentation::SafeDownCast(
-      this->DebugX->GetRepresentation())->SetPoint1WorldPosition(o);
-    vtkLineRepresentation::SafeDownCast(
-      this->DebugX->GetRepresentation())->SetPoint2WorldPosition(
-        transform->TransformDoublePoint(distance, 0.0, 0.0));
-
-    vtkLineRepresentation::SafeDownCast(
-      this->DebugY->GetRepresentation())->SetPoint1WorldPosition(o);
-    vtkLineRepresentation::SafeDownCast(
-      this->DebugY->GetRepresentation())->SetPoint2WorldPosition(
-        transform->TransformDoublePoint(0.0, distance, 0.0));
-
-    vtkLineRepresentation::SafeDownCast(
-      this->DebugZ->GetRepresentation())->SetPoint1WorldPosition(o);
-    vtkLineRepresentation::SafeDownCast(
-      this->DebugZ->GetRepresentation())->SetPoint2WorldPosition(
-        transform->TransformDoublePoint(0.0, 0.0, distance));
-
-    if (vtkLineRepresentation::SafeDownCast(
-          this->DebugX->GetRepresentation())->GetVisibility() == 0)
-      {
-      vtkLineRepresentation::SafeDownCast(
-        this->DebugX->GetRepresentation())->SetVisibility(1);
-      vtkLineRepresentation::SafeDownCast(
-        this->DebugY->GetRepresentation())->SetVisibility(1);
-      vtkLineRepresentation::SafeDownCast(
-        this->DebugZ->GetRepresentation())->SetVisibility(1);
-      }
-    }
-  else
-    {
-    vtkErrorMacro("Unknow value for DebugAxes. ->Doing nothing.");
+    this->AxesActor->SetUserTransform(transform);
     }
 }
 
@@ -1740,7 +1685,8 @@ void vtkBoneWidget::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "  HeadLinkToParent: "<< this->HeadLinkedToParent << "\n";
   os << indent << "  ShowParentage: "<< this->ShowParentage << "\n";
 
-  os << indent << "Debug:" << "\n";
-  os << indent << "  Debug Axes: "<< this->DebugAxes << "\n";
-  os << indent << "  Debug Axes Size: "<< this->DebugAxesSize << "\n";
+  os << indent << "Axes:" << "\n";
+  os << indent << "  Axes Actor: "<< this->AxesActor << "\n";
+  os << indent << "  Axes Visibility: "<< this->AxesVisibility << "\n";
+  os << indent << "  Axes Size: "<< this->AxesSize << "\n";
 }

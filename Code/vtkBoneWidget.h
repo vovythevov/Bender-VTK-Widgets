@@ -32,8 +32,7 @@
 
 #include "vtkCommand.h"
 
-#include <vector>
-
+class vtkAxesActor;
 class vtkBoneRepresentation;
 class vtkBoneWidgetCallback;
 class vtkHandleWidget;
@@ -168,8 +167,10 @@ public:
   //ShowPoseTransformAndRestTransform <-> 3:  The debug axes will output the
   //                                        result of the RestTransform
   //                                        and the pose tranform.
-  vtkGetMacro(DebugAxes, int);
-  void SetDebugAxes (int debugAxes);
+  // The axes labels are disables by defaut. To change rendering properties,
+  // see GetAxesActor().
+  vtkGetMacro(AxesVisibility, int);
+  void SetAxesVisibility (int AxesVisibility);
 
   // Description:
   //Nothing:                          Show nothing
@@ -178,11 +179,11 @@ public:
   //ShowPoseTransformAndRestTransform:  The debug axes will output the result of the RestTransform
   //                                  and the pose tranform.
   //BTX
-  enum DebugAxesType {Nothing = 0,
-                      ShowRestTransform,
-                      ShowPoseTransform,
-                      ShowPoseTransformAndRestTransform
-                      };
+  enum AxesVisibilityType {Nothing = 0,
+                           ShowRestTransform,
+                           ShowPoseTransform,
+                           ShowPoseTransformAndRestTransform
+                          };
   //ETX
 
   // Description:
@@ -206,7 +207,7 @@ public:
   // The user is responsible for deleting the transformed received.
   vtkTransform* CreatetWorldToBoneParentTransform();
 
-  //Description
+  // Description:
   // Set/Get if the bone Head is linked, i.e merged. with the parent Tail
   // When setting this to true, the bone Head is automatically snapped
   // to the parent Tail and the Head widget is disabled
@@ -215,10 +216,17 @@ public:
   vtkGetMacro(HeadLinkedToParent, int);
   void SetHeadLinkedToParent (int link);
 
-  //Description
+  // Description
   // Show/Hide the link between a child an its parent
   vtkGetMacro(ShowParentage, int);
   void SetShowParentage (int parentage);
+
+  // Description:
+  // Get the Axes actor. This is meant for the user to
+  // modify the rendering properties of the actor. The 
+  // other properties must be left unchanged.
+  vtkAxesActor* GetAxesActor()
+  { return this->AxesActor; };
 
 protected:
   vtkBoneWidget();
@@ -266,20 +274,20 @@ protected:
   int                         ShowParentage;
   vtkLineWidget2*             ParentageLink;
 
-  //For an easier debug
-  int                         DebugAxes;
-  vtkLineWidget2*             DebugX;
-  vtkLineWidget2*             DebugY;
-  vtkLineWidget2*             DebugZ;
-  double                      DebugAxesSize;
+  //For an easier debug and understanding
+  int                         AxesVisibility;
+  vtkAxesActor*               AxesActor;
+  double                      AxesSize;
 
   //Essentials functions
   void RebuildRestTransform();
   void RebuildLocalRestPoints();
   void RebuildLocalPosePoints();
   void RebuildPoseTransform();
-  void RebuildDebugAxes();
+  void RebuildAxes();
   void RebuildParentageLink();
+
+  void UpdateAxesVisibility();
 
   // Description:
   // Move the point Head to the parent Tail

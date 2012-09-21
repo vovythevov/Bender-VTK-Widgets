@@ -131,14 +131,14 @@ class ThreeBonesTestKeyPressInteractorStyle : public vtkInteractorStyleTrackball
       else if (key == "Tab")
         {
         //std::cout<<"Tab"<<std::endl;
-        int state = Widget->GetDebugAxes() + 1;
+        int state = Widget->GetAxesVisibility() + 1;
         if (state > vtkBoneWidget::ShowPoseTransformAndRestTransform)
           {
           state = 0;
           }
-        Widget->SetDebugAxes(state);
-        SonWidget->SetDebugAxes(state);
-        MiddleSonWidget->SetDebugAxes(state);
+        Widget->SetAxesVisibility(state);
+        SonWidget->SetAxesVisibility(state);
+        MiddleSonWidget->SetAxesVisibility(state);
         }
       else if (key == "l")
         {
