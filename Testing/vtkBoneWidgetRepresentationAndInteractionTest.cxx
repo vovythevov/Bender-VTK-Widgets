@@ -79,7 +79,7 @@ class KeyPressInteractorStyle : public vtkInteractorStyleTrackballCamera
           }
         else if ( widgetState == vtkBoneWidget::Pose )
           {
-          this->Widget->SetWidgetStateToStart();
+          this->Widget->SetWidgetStateToRest();
           }
         }
       else if (key == "Tab")
@@ -156,15 +156,11 @@ int vtkBoneWidgetRepresentationAndInteractionTest(int, char *[])
   //Test Line
   BoneWidget->CreateDefaultRepresentation();
 
-  vtkSmartPointer<vtkAxesActor> axes = vtkSmartPointer<vtkAxesActor>::New();
-  renderer->AddActor(axes);
-
   //Setup callbacks
   vtkSmartPointer<KeyPressInteractorStyle> style = 
     vtkSmartPointer<KeyPressInteractorStyle>::New();
   renderWindowInteractor->SetInteractorStyle(style);
   style->Widget = BoneWidget;
-  style->Axes = axes;
   style->SetCurrentRenderer(renderer);
 
   // Render

@@ -717,12 +717,6 @@ void vtkBoneWidget::SetEnabled(int enabling)
       this->TailWidget->GetRepresentation()->SetRenderer(
         this->CurrentRenderer);
       }
-
-    if (this->CurrentRenderer)
-      {
-      this->CurrentRenderer->AddActor(this->AxesActor);
-      }
-    this->SetAxesVisibility(vtkBoneWidget::Nothing);
     }
   else //disabling widget
     {
@@ -734,16 +728,27 @@ void vtkBoneWidget::SetEnabled(int enabling)
       {
       this->TailWidget->SetEnabled(0);
       }
-
-    if (this->CurrentRenderer)
-      {
-      this->CurrentRenderer->RemoveActor(this->AxesActor);
-      }
-    this->SetAxesVisibility(vtkBoneWidget::Nothing);
     }
 
   this->Superclass::SetEnabled(enabling);
-  this->RebuildAxes();
+
+  // Add/Remove the actor
+  // This needs to be done after enabling the superclass
+  // otherwise there isn't a renderer ready.
+  if (this->CurrentRenderer)
+    {
+    if (enabling)
+      {
+      this->CurrentRenderer->AddActor(this->AxesActor);
+      this->UpdateAxesVisibility();
+      }
+    else
+      {
+      this->CurrentRenderer->RemoveActor(this->AxesActor);
+      this->SetAxesVisibility(vtkBoneWidget::Nothing);
+      }
+    this->RebuildAxes();
+    }
 }
 
 //----------------------------------------------------------------------
@@ -1237,141 +1242,141 @@ void vtkBoneWidget::SetWidgetState(int state)
     {
     return;
     }
-  this->WidgetState = state;
+
   switch (state)
     {
     case vtkBoneWidget::Start:
       {
-      this->SetWidgetStateToStart();
-      break;
+      vtkErrorMacro("Cannot set bone widget to start. The start mode is"
+                    " automatically defined when the bone is created,"
+                    " but cannot be set by the user.");
+      return;
       }
     case vtkBoneWidget::Define:
       {
-      vtkErrorMacro("Cannot set state to Define from outside this class"
-                    "\n -> Doing nothing.");
-      break;
+      vtkErrorMacro("Cannot set bone widget to define. The define mode is"
+                    " automatically after the first point has been placed,"
+                    " but cannot be set by the user.");
+      return;
       }
     case vtkBoneWidget::Rest:
       {
-      this->SetWidgetStateToRest();
+      //Update selection
+      this->BoneSelected = 0;
+      this->HeadSelected = 0;
+      this->TailSelected = 0;
+
+      //Initialize transform and positions
+      InitializeQuaternion(this->PoseTransform);
+      InitializeQuaternion(this->StartPoseTransform);
+      InitializeVector3(this->InteractionWorldHead);
+      InitializeVector3(this->InteractionWorldTail);
+      InitializeVector3(this->LocalPoseHead);
+      InitializeVector3(this->LocalPoseTail);
+
+      if (this->WidgetState != vtkBoneWidget::Pose)
+        {
+        //Just need to Rebuild transform and local points
+        this->RebuildRestTransform();
+        this->RebuildLocalRestPoints();
+        }
+      else // previous state was pose
+        {
+        //We need to reset the points to their original rest position
+        vtkTransform* transform = this->CreatetWorldToBoneParentTransform();
+
+        double* newHead = transform->TransformDoublePoint(this->LocalRestHead);
+        this->GetBoneRepresentation()->SetHeadWorldPosition(newHead);
+
+        double* newTail = transform->TransformDoublePoint(this->LocalRestTail);
+        this->GetBoneRepresentation()->SetTailWorldPosition(newTail);
+
+        transform->Delete();
+        }
+
+      //Update ohers
+      this->UpdateAxesVisibility();
+      this->RebuildParentageLink();
+
       break;
       }
     case vtkBoneWidget::Pose:
       {
-      this->SetWidgetStateToPose();
+      //Update selection
+      this->BoneSelected = 0;
+      this->HeadSelected = 0;
+      this->TailSelected = 0;
+
+      //Update local pose
+      CopyVector3(this->LocalRestHead, this->LocalPoseHead);
+      CopyVector3(this->LocalRestTail, this->LocalPoseTail);
+      InitializeQuaternion(this->StartPoseTransform);
+
+      //Update intercation position
+      this->GetBoneRepresentation()->GetHeadWorldPosition(this->InteractionWorldHead);
+      this->GetBoneRepresentation()->GetTailWorldPosition(this->InteractionWorldTail);
+
+      //Update/Rebuild variables
+      if (this->WidgetState != vtkBoneWidget::Rest)
+        //this would be a weird case but one never knows
+        {
+        this->RebuildRestTransform();
+        }
+      this->RebuildPoseTransform();
+
+      this->UpdateAxesVisibility();
+      this->RebuildParentageLink();
+
       break;
       }
     default:
       {
       vtkErrorMacro("Unknown state. The only possible values are:"
-                   "\n    0 <-> Start"
-                   "\n    2 <-> Rest"
-                   "\n    3 <-> Pose"
-                   "\n -> Doing nothing.");
-      break;
+                     "\n    0 <-> Start"
+                     "\n    2 <-> Rest"
+                     "\n    3 <-> Pose"
+                     "\n -> Doing nothing.");
+      return;
       }
     }
+
+  this->WidgetState = state;
   this->Modified();
-}
-
-//----------------------------------------------------------------------
-void vtkBoneWidget::SetWidgetStateToStart()
-{
-  this->WidgetState = vtkBoneWidget::Start;
-  this->BoneSelected = 0;
-  this->HeadSelected = 0;
-  this->TailSelected = 0;
-  
-  this->WidgetRep->Highlight(0);
-
-  this->UpdateAxesVisibility();
-  this->RebuildParentageLink();
-  this->SetEnabled(this->GetEnabled()); // show/hide the handles properly
-  this->ReleaseFocus();
 }
 
 //----------------------------------------------------------------------
 void vtkBoneWidget::SetWidgetStateToPose()
 {
-  this->BoneSelected = 0;
-  this->HeadSelected = 0;
-  this->TailSelected = 0;
-
-  CopyVector3(this->LocalRestHead, this->LocalPoseHead);
-  CopyVector3(this->LocalRestTail, this->LocalPoseTail);
-  InitializeQuaternion(this->StartPoseTransform);
-
-  this->GetBoneRepresentation()->GetHeadWorldPosition(this->InteractionWorldHead);
-  this->GetBoneRepresentation()->GetTailWorldPosition(this->InteractionWorldTail);
-
-  if (this->WidgetState != vtkBoneWidget::Rest)
-    {
-    this->RebuildRestTransform();
-    }
-  this->WidgetState = vtkBoneWidget::Pose;
-
-  this->RebuildPoseTransform();
-  if (!this->BoneParent)
-    std::cout<<"Axis visibility: "<<this->AxesVisibility<<std::endl;
-  this->UpdateAxesVisibility();
-  if (!this->BoneParent)
-    std::cout<<"Axis visibility: "<<this->AxesVisibility<<std::endl;
-
-  this->SetEnabled(this->GetEnabled()); // show/hide the handles properly
-  this->ReleaseFocus();
+  this->SetWidgetState(vtkBoneWidget::Pose);
 }
 
 //----------------------------------------------------------------------
 void vtkBoneWidget::SetWidgetStateToRest()
 {
-  this->BoneSelected = 0;
-  this->HeadSelected = 0;
-  this->TailSelected = 0;
-
-  InitializeQuaternion(this->PoseTransform);
-  InitializeQuaternion(this->StartPoseTransform);
-  InitializeVector3(this->InteractionWorldHead);
-  InitializeVector3(this->InteractionWorldTail);
-  InitializeVector3(this->LocalPoseHead);
-  InitializeVector3(this->LocalPoseTail);
-
-  //if (this->HeadLinkedToParent)
-  //  {
-  //  this->LinkHeadToParent();
-  //  }
-
-  if (this->WidgetState != vtkBoneWidget::Pose)
-    {
-    this->RebuildRestTransform();
-    this->RebuildLocalRestPoints();
-    }
-  else // previous state was pose
-    {
-    //We need to reset the points to their original rest position
-    vtkTransform* transform = this->CreatetWorldToBoneParentTransform();
-
-    double* newHead = transform->TransformDoublePoint(this->LocalRestHead);
-    this->GetBoneRepresentation()->SetHeadWorldPosition(newHead);
-
-    double* newTail = transform->TransformDoublePoint(this->LocalRestTail);
-    this->GetBoneRepresentation()->SetTailWorldPosition(newTail);
-
-    transform->Delete();
-    }
-
-  this->WidgetState = vtkBoneWidget::Rest;
-
-  this->UpdateAxesVisibility();
-  this->RebuildParentageLink();
-  this->SetEnabled(this->GetEnabled()); // show/hide the handles properly
-  this->ReleaseFocus();
+  this->SetWidgetState(vtkBoneWidget::Rest);
 }
 
 //----------------------------------------------------------------------
 void vtkBoneWidget::SetAxesVisibility(int visibility)
 {
+  if (this->BoneParent)
+    {
+    std::cout<<"In Sons"<<std::endl;
+    }
+
+  if (this->AxesVisibility == visibility)
+    {
+    return;
+    }
+
   this->AxesVisibility = visibility;
   this->UpdateAxesVisibility();
+
+  if (this->BoneParent)
+    {
+    std::cout<<"  "<<this->AxesActor->GetVisibility()<<std::endl;
+    }
+
 }
 
 //----------------------------------------------------------------------

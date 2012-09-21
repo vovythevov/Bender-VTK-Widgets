@@ -75,6 +75,9 @@ public:
   virtual void SetProcessEvents(int process);
 
   // Description:
+  // The modes work following this diagram:
+  // Start -> Define -> Rest <-> Pose
+  //
   // Start Mode:  Define the first point when clicked. Goes then to define mode.
   // Define Mode:  Define the second point when clicked. Goes then to rest mode.
   // Rest Mode:  The bone can be moved and rescaled. If the bone has Children,
@@ -131,7 +134,6 @@ public:
   //               (NO rescaling)
   vtkGetMacro(WidgetState, int);
   void SetWidgetState(int state);
-  void SetWidgetStateToStart();
   void SetWidgetStateToRest();
   void SetWidgetStateToPose();
 
@@ -223,7 +225,7 @@ public:
 
   // Description:
   // Get the Axes actor. This is meant for the user to
-  // modify the rendering properties of the actor. The 
+  // modify the rendering properties of the actor. The
   // other properties must be left unchanged.
   vtkAxesActor* GetAxesActor()
   { return this->AxesActor; };
