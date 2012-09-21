@@ -100,6 +100,10 @@ class TwoBonesTestKeyPressInteractorStyle : public vtkInteractorStyleTrackballCa
         SonWidget->SetShowParentage(
           ! SonWidget->GetShowParentage());
         }
+      else if (key == "x")
+        {
+        Widget->RotateTailX(vtkMath::RadiansFromDegrees(1.0));
+        }
       }
 
     vtkBoneWidget* Widget;

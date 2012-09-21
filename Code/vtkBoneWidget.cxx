@@ -371,6 +371,77 @@ void vtkBoneWidget::SetTailWorldPosition(double x, double y, double z)
    this->SetTailWorldPosition(tail);
 }
 
+
+//----------------------------------------------------------------------
+void vtkBoneWidget::RotateTailX(double angle)
+{
+  this->RotateTailWXYZ(angle, 1.0, 0.0, 0.0);
+}
+
+//----------------------------------------------------------------------
+void vtkBoneWidget::RotateTailY(double angle)
+{
+  this->RotateTailWXYZ(angle, 0.0, 1.0, 0.0);
+}
+
+//----------------------------------------------------------------------
+void vtkBoneWidget::RotateTailZ(double angle)
+{
+  this->RotateTailWXYZ(angle, 0.0, 0.0, 1.0);
+}
+
+//----------------------------------------------------------------------
+void vtkBoneWidget::RotateTailWXYZ(double angle, double x, double y, double z)
+{
+  double axis[3];
+  axis[0] = x;
+  axis[1] = y;
+  axis[2] = z;
+  this->RotateTailWXYZ(angle, axis);
+}
+
+//----------------------------------------------------------------------
+void vtkBoneWidget::RotateTailWXYZ(double angle, double axis[3])
+{
+  double head[3];
+  this->GetBoneRepresentation()->GetHeadWorldPosition(head);
+
+  //Make transform
+  vtkSmartPointer<vtkTransform> T = vtkSmartPointer<vtkTransform>::New();
+  T->Translate(head); //last transform: Translate back to Head origin
+  T->RotateWXYZ(vtkMath::DegreesFromRadians(angle), axis); //middle rotatation
+  double minusHead[3];
+  CopyVector3(head, minusHead);
+  vtkMath::MultiplyScalar(minusHead, -1.0);
+  T->Translate(minusHead);//first transform: translate to origin
+
+  //Compute and place new tail position
+  double* newTail = T->TransformDoublePoint(
+    this->GetBoneRepresentation()->GetTailWorldPosition());
+
+  if (this->WidgetState == vtkBoneWidget::Pose)
+    {
+    this->GetBoneRepresentation()->SetTailWorldPosition(newTail);
+
+    //Update pose transform
+    double rotation[4];
+    this->AxisAngleToQuaternion(axis, angle, rotation);
+    NormalizeQuaternion(rotation);
+
+    MultiplyQuaternion(rotation, this->PoseTransform, this->PoseTransform);
+    NormalizeQuaternion(this->PoseTransform);
+
+    CopyQuaternion(this->PoseTransform, this->StartPoseTransform);
+    this->InvokeEvent(vtkBoneWidget::PoseChangedEvent, NULL);
+    }
+  else
+    {
+    this->SetTailWorldPosition(newTail);
+    }
+
+  this->Modified();
+}
+
 //----------------------------------------------------------------------
 void vtkBoneWidget::SetTailWorldPosition(double tail[3])
 {

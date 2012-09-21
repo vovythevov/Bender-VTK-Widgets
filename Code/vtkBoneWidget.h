@@ -104,21 +104,39 @@ public:
 
   // Description:
   // Set/Get the head world position
+  // The user should try to be in rest mode when using those methods.
+  // If the bone is in pose mode, this will output an error messages.
+  // In pose mode, the head cannot be moved. (It will however automatically
+  // follows its parent movement)
   void SetHeadWorldPosition(double x, double y, double z);
   void SetHeadWorldPosition(double Head[3]);
   void GetHeadWorldPosition(double Head[3]);
   double* GetHeadWorldPosition();
 
   // Description:
-  //Set/Get the tail world position
+  // Set/Get the tail world position
+  // The user should try to be in rest mode when using those methods.
+  // If the bone is in pose mode, this will output an error messages.
+  // The rotates methods must be used when moving the tail.
   void SetTailWorldPosition(double x, double y, double z);
   void SetTailWorldPosition(double Tail[3]);
   void GetTailWorldPosition(double Head[3]);
   double* GetTailWorldPosition();
 
-  // Descritpion:
+  // Description:
+  // Rotation methods to move the tail. Those methods can be used in any modes.
+  // Note: In pose mode, those methods must be used instead of
+  // SetTailWorldPosition. Angle is in radians.
+  void RotateTailX(double angle);
+  void RotateTailY(double angle);
+  void RotateTailZ(double angle);
+  void RotateTailWXYZ(double angle, double x, double y, double z);
+  void RotateTailWXYZ(double angle, double axis[3]);
+
+  // Descritption:
   // Helper function for conversion quaternion conversion
   // to and from rotation/axis
+  // Angle is in radians
   static double QuaternionToAxisAngle(double quad[4], double axis[3]);
   static void AxisAngleToQuaternion(double axis[3], double angle, double quad[4]);
 
