@@ -1288,6 +1288,11 @@ void vtkBoneWidget::BoneParentRestChanged()
 //----------------------------------------------------------------------
 void vtkBoneWidget::StartBoneInteraction()
 {
+  if (this->WidgetState == vtkBoneWidget::Pose)
+    {
+    CopyQuaternion(this->PoseTransform, this->StartPoseTransform);
+    }
+
   this->Superclass::StartInteraction();
   this->InvokeEvent(vtkCommand::StartInteractionEvent,NULL);
 }
@@ -1295,6 +1300,11 @@ void vtkBoneWidget::StartBoneInteraction()
 //----------------------------------------------------------------------
 void vtkBoneWidget::EndBoneInteraction()
 {
+  if (this->WidgetState == vtkBoneWidget::Pose)
+    {
+    CopyQuaternion(this->PoseTransform, this->StartPoseTransform);
+    }
+
   this->Superclass::EndInteraction();
   this->InvokeEvent(vtkCommand::EndInteractionEvent,NULL);
 }
@@ -1622,12 +1632,12 @@ vtkTransform* vtkBoneWidget::CreatetWorldToBoneParentTransform()
     MultiplyQuaternion(this->BoneParent->GetPoseTransform(),
                        this->BoneParent->GetRestTransform(),
                        resultTransform);
-    NormalizeQuaternion(resultTransform);
     }
+  NormalizeQuaternion(resultTransform);
 
   double axis[3];
   double angle = QuaternionToAxisAngle(resultTransform, axis);
-  transform->RotateWXYZ(angle, axis);
+  transform->RotateWXYZ(vtkMath::DegreesFromRadians(angle), axis);
   return transform;
 }
 
