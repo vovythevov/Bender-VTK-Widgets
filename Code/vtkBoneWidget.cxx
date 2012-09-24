@@ -1665,7 +1665,7 @@ vtkTransform* vtkBoneWidget::CreateWorldToBoneTransform()
 
   double axis[3];
   double angle = QuaternionToAxisAngle(resultTransform, axis);
-  transform->RotateWXYZ(angle, axis);
+  transform->RotateWXYZ(vtkMath::DegreesFromRadians(angle), axis);
   return transform;
 }
 
