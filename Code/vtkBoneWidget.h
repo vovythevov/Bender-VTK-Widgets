@@ -207,15 +207,6 @@ public:
   //ETX
 
   // Description:
-  // Get the transform from world to bone coordinates.
-  // This transform is:
-  //    Rest mode T = RestTransform + Translation
-  //    Pose mode T = RestTransform*PoseTransform + Translation
-  //    Start/Define mode T = NULL
-  // The user is responsible for deleting the transformed received.
-  vtkTransform* CreateWorldToBoneTransform();
-
-  // Description:
   // Get the transform from world to bone parent coordinates.
   // This transform is identity is the bone does not have a parent
   // Otherwise:

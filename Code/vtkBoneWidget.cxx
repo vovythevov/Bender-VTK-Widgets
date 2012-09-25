@@ -1684,34 +1684,6 @@ vtkTransform* vtkBoneWidget::CreateWorldToBoneParentTransform()
 }
 
 //----------------------------------------------------------------------
-vtkTransform* vtkBoneWidget::CreateWorldToBoneTransform()
-{
-  double origin[3];
-  this->GetBoneRepresentation()->GetHeadWorldPosition(origin);
-
-  vtkTransform* transform = vtkTransform::New();
-  transform->Translate( origin );
-
-  double resultTransform[4];
-  if (this->WidgetState == Rest)
-    {
-    CopyQuaternion(this->RestTransform, resultTransform);
-    }
-  else //Pose mode
-    {
-    MultiplyQuaternion(this->GetPoseTransform(),
-                       this->GetRestTransform(),
-                       resultTransform);
-    NormalizeQuaternion(resultTransform);
-    }
-
-  double axis[3];
-  double angle = QuaternionToAxisAngle(resultTransform, axis);
-  transform->RotateWXYZ(vtkMath::DegreesFromRadians(angle), axis);
-  return transform;
-}
-
-//----------------------------------------------------------------------
 double vtkBoneWidget::QuaternionToAxisAngle(double quad[4], double axis[3])
 {
   double angle = acos(quad[0]) * 2.0;
