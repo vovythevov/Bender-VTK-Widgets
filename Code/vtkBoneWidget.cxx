@@ -669,7 +669,7 @@ void vtkBoneWidget::RebuildRestTransform()
 void vtkBoneWidget::RebuildLocalRestPoints()
 {
   vtkTransform* transform =
-    this->CreatetWorldToBoneParentTransform();
+    this->CreateWorldToBoneParentTransform();
   transform->Inverse();
 
   double* head = transform->TransformDoublePoint(
@@ -687,7 +687,7 @@ void vtkBoneWidget::RebuildLocalRestPoints()
 void vtkBoneWidget::RebuildLocalPosePoints()
 {
   vtkTransform* transform =
-    this->CreatetWorldToBoneParentTransform();
+    this->CreateWorldToBoneParentTransform();
   transform->Inverse();
 
   double* head = transform->TransformDoublePoint(
@@ -1181,7 +1181,7 @@ void vtkBoneWidget::BoneParentInteractionStopped()
 void vtkBoneWidget::BoneParentPoseChanged()
 {
   vtkTransform* transform =
-    this->CreatetWorldToBoneParentTransform();
+    this->CreateWorldToBoneParentTransform();
 
   double* newHead = transform->TransformDoublePoint(this->LocalPoseHead);
   this->GetBoneRepresentation()->SetHeadWorldPosition(newHead);
@@ -1366,7 +1366,7 @@ void vtkBoneWidget::SetWidgetState(int state)
       else // previous state was pose
         {
         //We need to reset the points to their original rest position
-        vtkTransform* transform = this->CreatetWorldToBoneParentTransform();
+        vtkTransform* transform = this->CreateWorldToBoneParentTransform();
 
         double* newHead = transform->TransformDoublePoint(this->LocalRestHead);
         this->GetBoneRepresentation()->SetHeadWorldPosition(newHead);
@@ -1612,7 +1612,7 @@ void vtkBoneWidget::SetShowParentage(int parentage)
 }
 
 //----------------------------------------------------------------------
-vtkTransform* vtkBoneWidget::CreatetWorldToBoneParentTransform()
+vtkTransform* vtkBoneWidget::CreateWorldToBoneParentTransform()
 {
   vtkTransform* transform = vtkTransform::New();
   if (!this->BoneParent)

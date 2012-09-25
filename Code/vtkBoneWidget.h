@@ -225,7 +225,7 @@ public:
   //    Start/Define mode T = NULL
   /// Where the translation is the translation by the bone parent's tail
   // The user is responsible for deleting the transformed received.
-  vtkTransform* CreatetWorldToBoneParentTransform();
+  vtkTransform* CreateWorldToBoneParentTransform();
 
   // Description:
   // Set/Get if the bone Head is linked, i.e merged. with the parent Tail
