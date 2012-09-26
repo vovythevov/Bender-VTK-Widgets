@@ -21,11 +21,38 @@
 #ifndef __vtkBoneWidget_h
 #define __vtkBoneWidget_h
 
-//TO DO: ADD COMMENTS
-
-// A bone is always defined with respect to a frame.
-// It can be World or the parent's frame.
-// In a parent's frame, Y is always along the line, from point 1 to point 2.
+// .NAME vtkBoneWidget - Widget for skeletal animation
+// .SECTION Description
+// The vtkBoneWIdget is a widget meant for animation. It defines a bone with
+// a head and a tail point. The head and the tail can be manipulated by the
+// user depending on the widget current mode. The widget has 4 modes in which
+// its behavior varies.
+// When creating the widget, the mode is Start. In START mode, the
+// LeftButtonPressEvent defines the bone's head. The widget then goes
+// to DEFINE mode. In DEFINE mode, a LeftButtonPressEvent defines the
+// bone's tail. The widget then goes to REST mode.
+// In rest mode, the user can move, resize, translate the bone, its head or
+// its tail. The rest transform is automatically updated to represent new
+// coordinated such as the world coordinates Y will be aligned with the bone's
+// directionnal vector.
+// In POSE mode, the bone will keep its size. The user can only rotate
+// the tail of the bone in the camera plane when interacting.
+// The pose transform is updated such as the world coordinate Y will be
+// aligned with the bone directionnal vector when transformed by the product
+// of the pose transform and the rest transform.
+// The START mode and the DEFINED mode should not be set manually y the user.
+// To resume, the bone state-machine is the following:
+// START ---> Define ---> REST <<--->> POSE
+//
+// The user can also specify a parent to the bone. In that case, the
+// bone will be represented in it's parent coordinate system.
+// This means that if the parent moves in POSE mode, the child will
+// follow the same transformation (forward kinetic).
+//
+// The representation associated are the vtkBoneWidgetRepresentation (a line),
+// the vtkCylinderBoneRepresentation (a cylinder around a line) and the
+// vtkDoubleConeRepresentation (2 cones with theirs base glued together around
+// a line).
 
 #include "vtkAbstractWidget.h"
 #include "vtkBoneWidgetHeader.h"
@@ -183,25 +210,25 @@ public:
   void GetRestTransform (double restTransform[4]);
   double* GetRestTransform ();
 
-  //Description
-  //Get/Set the bone's pose transform. The pose transform is updated in pose
-  //mode. It is undefined in the other modes.
+  // Description
+  // Get/Set the bone's pose transform. The pose transform is updated in pose
+  // mode. It is undefined in the other modes.
   void GetPoseTransform (double poseTransform[4]);
   double* GetPoseTransform ();
 
-  //Description
-  //Set/get the roll imposed to the matrix, in radians. 0.0 by default.
+  // Description
+  // Set/get the roll imposed to the matrix, in radians. 0.0 by default.
   vtkGetMacro(Roll, double);
   vtkSetMacro(Roll, double);
 
-  //Description
-  //Set/get if the debug axes are visible or not.
-  //Nothing <-> 0:                          Show nothing
-  //ShowRestTransform <-> 1:                  The debug axes will output the
+  // Description
+  // Set/get if the debug axes are visible or not.
+  // Nothing <-> 0:                          Show nothing
+  // ShowRestTransform <-> 1:                  The debug axes will output the
   //                                        RestTransform axes
-  //ShowPoseTransform  <-> 2:               The debug axes will output the
+  // ShowPoseTransform  <-> 2:               The debug axes will output the
   //                                        pose transform axes
-  //ShowPoseTransformAndRestTransform <-> 3:  The debug axes will output the
+  // ShowPoseTransformAndRestTransform <-> 3:  The debug axes will output the
   //                                        result of the RestTransform
   //                                        and the pose tranform.
   // The axes labels are disables by defaut. To change rendering properties,
@@ -210,10 +237,10 @@ public:
   void SetAxesVisibility (int AxesVisibility);
 
   // Description:
-  //Nothing:                          Show nothing
-  //ShowRestTransform:                  The debug axes will output the RestTransform axes
-  //ShowPoseTransform:                The debug axes will output the pose transform axes
-  //ShowPoseTransformAndRestTransform:  The debug axes will output the result of the RestTransform
+  // Nothing:                          Show nothing
+  // ShowRestTransform:                  The debug axes will output the RestTransform axes
+  // ShowPoseTransform:                The debug axes will output the pose transform axes
+  // ShowPoseTransformAndRestTransform:  The debug axes will output the result of the RestTransform
   //                                  and the pose tranform.
   //BTX
   enum AxesVisibilityType {Nothing = 0,
@@ -295,7 +322,7 @@ protected:
   void StartBoneInteraction();
   virtual void EndBoneInteraction();
 
-  //Bone widget essentials
+  // Bone widget essentials
   vtkBoneWidget*              BoneParent;
   vtkBoneWidgetCallback*      BoneWidgetChildrenCallback;
   double                      LocalRestHead[3];
@@ -309,24 +336,31 @@ protected:
   double                      RestTransform[4];
   double                      PoseTransform[4];
 
-  //For the link between parent and child
+  // For the link between parent and child
   int                         HeadLinkedToParent;
   int                         ShowParentage;
   vtkLineWidget2*             ParentageLink;
 
-  //For an easier debug and understanding
+  // For an easier debug and understanding
   int                         AxesVisibility;
   vtkAxesActor*               AxesActor;
   double                      AxesSize;
 
-  //Essentials functions
+  // Essentials functions
+  // Recompute transforms:
   void RebuildRestTransform();
+  void RebuildPoseTransform();
+
+  // Recompute local points
   void RebuildLocalRestPoints();
   void RebuildLocalPosePoints();
-  void RebuildPoseTransform();
+
+  // Recompute features
   void RebuildAxes();
   void RebuildParentageLink();
 
+  // Those methods change the visibility of the features
+  // and call the corresponding Rebuild...()
   void UpdateParentageLinkVisibility();
   void UpdateAxesVisibility();
 
@@ -337,7 +371,7 @@ protected:
   // Move this Tail to the child's Head. Used for translations.
   void LinkTailToChild(vtkBoneWidget* child);
 
-  //Function called upon Parent events
+  // Function called upon Parent events
   void BoneParentPoseChanged();
   void BoneParentInteractionStopped();
   void BoneParentRestChanged();
