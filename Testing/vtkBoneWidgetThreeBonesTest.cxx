@@ -194,8 +194,8 @@ int vtkBoneWidgetThreeBonesTest(int, char *[])
   fatherBoneWidget->SetWidgetStateToRest();
 
   //Reset Father position
-  fatherBoneWidget->SetHeadWorldPosition(0.0, 0.0, 0.0);
-  fatherBoneWidget->SetTailWorldPosition(0.0, 0.1, 0.0);
+  fatherBoneWidget->SetHeadRestWorldPosition(0.0, 0.0, 0.0);
+  fatherBoneWidget->SetTailRestWorldPosition(0.0, 0.1, 0.0);
 
   vtkSmartPointer<vtkBoneWidget> middleSonBoneWidget = 
     vtkSmartPointer<vtkBoneWidget>::New();
@@ -203,8 +203,8 @@ int vtkBoneWidgetThreeBonesTest(int, char *[])
   middleSonBoneWidget->CreateDefaultRepresentation();
 
   middleSonBoneWidget->SetWidgetStateToRest();
-  middleSonBoneWidget->SetHeadWorldPosition(0.0, 0.2, 0.0);
-  middleSonBoneWidget->SetTailWorldPosition(0.1, 0.2, 0.0);
+  middleSonBoneWidget->SetHeadRestWorldPosition(0.0, 0.2, 0.0);
+  middleSonBoneWidget->SetTailRestWorldPosition(0.1, 0.2, 0.0);
   middleSonBoneWidget->SetBoneParent(fatherBoneWidget);
   middleSonBoneWidget->GetBoneRepresentation()->GetHeadRepresentation()->GetProperty()->SetColor(0.0, 1.0, 1.0);
   middleSonBoneWidget->GetBoneRepresentation()->GetTailRepresentation()->GetProperty()->SetColor(0.0, 0.0, 1.0);
@@ -215,8 +215,8 @@ int vtkBoneWidgetThreeBonesTest(int, char *[])
   sonBoneWidget->CreateDefaultRepresentation();
 
   sonBoneWidget->SetWidgetStateToRest();
-  sonBoneWidget->SetHeadWorldPosition(0.1, 0.3, 0.0);
-  sonBoneWidget->SetTailWorldPosition(0.1, 0.4, 0.0);
+  sonBoneWidget->SetHeadRestWorldPosition(0.1, 0.3, 0.0);
+  sonBoneWidget->SetTailRestWorldPosition(0.1, 0.4, 0.0);
   sonBoneWidget->SetBoneParent(middleSonBoneWidget);
   sonBoneWidget->GetBoneRepresentation()->GetHeadRepresentation()->GetProperty()->SetColor(0.0, 1.0, 1.0);
   sonBoneWidget->GetBoneRepresentation()->GetTailRepresentation()->GetProperty()->SetColor(0.0, 0.0, 1.0);

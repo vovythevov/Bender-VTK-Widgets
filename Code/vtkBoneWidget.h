@@ -104,25 +104,41 @@ public:
   //ETX
 
   // Description:
-  // Set/Get the head world position
+  // Set the head rest world position
   // The user should try to be in rest mode when using those methods.
-  // If the bone is in pose mode, this will output an error messages.
-  // In pose mode, the head cannot be moved. (It will however automatically
-  // follows its parent movement)
-  void SetHeadWorldPosition(double x, double y, double z);
-  void SetHeadWorldPosition(double Head[3]);
-  void GetHeadWorldPosition(double Head[3]);
-  double* GetHeadWorldPosition();
+  // If the bone is in pose mode, this will set the position anyway.
+  // In that case, the bone behavior no longer guaranteed
+  void SetHeadRestWorldPosition(double x, double y, double z);
+  void SetHeadRestWorldPosition(double Head[3]);
 
   // Description:
-  // Set/Get the tail world position
+  // Get the head rest position in world coordinates
+  void GetHeadRestWorldPosition(double Head[3]);
+  double* GetHeadRestWorldPosition();
+
+  // Description:
+  // Get the head pose position in world coordinates
+  void GetHeadPoseWorldPosition(double Head[3]);
+  double* GetHeadPoseWorldPosition();
+
+  // Description:
+  // Set the tail world position
   // The user should try to be in rest mode when using those methods.
-  // If the bone is in pose mode, this will output an error messages.
-  // The rotates methods must be used when moving the tail.
-  void SetTailWorldPosition(double x, double y, double z);
-  void SetTailWorldPosition(double Tail[3]);
-  void GetTailWorldPosition(double Head[3]);
-  double* GetTailWorldPosition();
+  // If the bone is in pose mode, this will set the position anyway.
+  // In that case, the bone behavior no longer guaranteed
+  // The rotates methods should be used instead.
+  void SetTailRestWorldPosition(double x, double y, double z);
+  void SetTailRestWorldPosition(double Tail[3]);
+
+  // Description:
+  // Get the head rest position in world coordinates
+  void GetTailRestWorldPosition(double Head[3]);
+  double* GetTailRestWorldPosition();
+
+  // Description:
+  // Get the head rest position in world coordinates
+  void GetTailPoseWorldPosition(double Head[3]);
+  double* GetTailPoseWorldPosition();
 
   // Description:
   // Rotation methods to move the tail. Those methods can be used in any modes.

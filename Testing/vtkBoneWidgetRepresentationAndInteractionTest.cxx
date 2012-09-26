@@ -117,7 +117,7 @@ class KeyPressInteractorStyle : public vtkInteractorStyleTrackballCamera
         std::cout<<"here"<<std::endl;
         double axis[3];
         vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
-        transform->Translate( Widget->GetTailWorldPosition() );
+        transform->Translate( Widget->GetTailRestWorldPosition() );
 
         double angle = vtkBoneWidget::QuaternionToAxisAngle(Widget->GetRestTransform(), axis);
         transform->RotateWXYZ(vtkMath::DegreesFromRadians(angle), axis[0], axis[1], axis[2]);

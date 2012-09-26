@@ -153,8 +153,8 @@ int vtkBoneWidgetTwoBonesTest(int, char *[])
   double axis[3], expectedAngle, expectedAxis[3], angle;
 
   //Test Z Axis
-  fatherBoneWidget->SetHeadWorldPosition(0.0, 0.0, 0.0);
-  fatherBoneWidget->SetTailWorldPosition(0.0, 0.0, 0.1);
+  fatherBoneWidget->SetHeadRestWorldPosition(0.0, 0.0, 0.0);
+  fatherBoneWidget->SetTailRestWorldPosition(0.0, 0.0, 0.1);
   expectedAngle = vtkMath::Pi() / 2.0;
   expectedAxis[0] = 1.0; expectedAxis[1] = 0.0; expectedAxis[2] = 0.0;
 
@@ -182,8 +182,8 @@ int vtkBoneWidgetTwoBonesTest(int, char *[])
 
   //Test Y Axis
   //std::cout<<"Father, along Y"<<std::endl;
-  fatherBoneWidget->SetHeadWorldPosition(0.0, 0.0, 0.0);
-  fatherBoneWidget->SetTailWorldPosition(0.0, 0.1, 0.0);
+  fatherBoneWidget->SetHeadRestWorldPosition(0.0, 0.0, 0.0);
+  fatherBoneWidget->SetTailRestWorldPosition(0.0, 0.1, 0.0);
   expectedAngle = 0.0;
   expectedAxis[0] = 1.0; expectedAxis[1] = 0.0; expectedAxis[2] = 0.0;
 
@@ -211,7 +211,7 @@ int vtkBoneWidgetTwoBonesTest(int, char *[])
     
   //Test X Axis
   //std::cout<<"Father, along X"<<std::endl;
-  fatherBoneWidget->SetTailWorldPosition(0.1, 0.0, 0.0);
+  fatherBoneWidget->SetTailRestWorldPosition(0.1, 0.0, 0.0);
   expectedAngle = vtkMath::Pi() / 2.0;
   expectedAxis[0] = 0.0; expectedAxis[1] = 0.0; expectedAxis[2] = -1.0;
 
@@ -239,7 +239,7 @@ int vtkBoneWidgetTwoBonesTest(int, char *[])
 
   //Test Weirder Axis
   //std::cout<<"Father, along weirder axis"<<std::endl;
-  fatherBoneWidget->SetTailWorldPosition(0.1, 0.1, 0.1);
+  fatherBoneWidget->SetTailRestWorldPosition(0.1, 0.1, 0.1);
   expectedAngle = 0.955317;
   expectedAxis[0] = sqrt(2.0)/2.0; expectedAxis[1] = 0.0; expectedAxis[2] = -sqrt(2.0)/2.0;
 
@@ -266,7 +266,7 @@ int vtkBoneWidgetTwoBonesTest(int, char *[])
     }
 
   //Reset Father position
-  fatherBoneWidget->SetTailWorldPosition(0.1, 0.0, 0.0);
+  fatherBoneWidget->SetTailRestWorldPosition(0.1, 0.0, 0.0);
 
   vtkSmartPointer<vtkBoneWidget> sonBoneWidget = 
     vtkSmartPointer<vtkBoneWidget>::New();
@@ -274,8 +274,8 @@ int vtkBoneWidgetTwoBonesTest(int, char *[])
   sonBoneWidget->CreateDefaultRepresentation();
 
   sonBoneWidget->SetWidgetStateToRest();
-  sonBoneWidget->SetHeadWorldPosition(0.2, 0.0, -0.1);
-  sonBoneWidget->SetTailWorldPosition(0.2, 0.0, -0.2);
+  sonBoneWidget->SetHeadRestWorldPosition(0.2, 0.0, -0.1);
+  sonBoneWidget->SetTailRestWorldPosition(0.2, 0.0, -0.2);
   sonBoneWidget->SetBoneParent(fatherBoneWidget);
   sonBoneWidget->GetBoneRepresentation()->GetHeadRepresentation()->GetProperty()->SetColor(0.0, 1.0, 1.0);
   sonBoneWidget->GetBoneRepresentation()->GetTailRepresentation()->GetProperty()->SetColor(0.0, 0.0, 1.0);
