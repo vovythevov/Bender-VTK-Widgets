@@ -1654,33 +1654,65 @@ void vtkBoneWidget::SetShowParentage(int parentage)
 }
 
 //----------------------------------------------------------------------
-vtkTransform* vtkBoneWidget::CreateWorldToBoneParentTransform()
+vtkSmartPointer<vtkTransform> vtkBoneWidget::CreateWorldToBoneParentTransform()
 {
-  vtkTransform* transform = vtkTransform::New();
+  if (this->WidgetState == vtkBoneWidget::Rest)
+    {
+    return this->CreateWorldToBoneParentRestTransform();
+    }
+  else if (this->WidgetState == vtkBoneWidget::Pose)
+    {
+    return this->CreateWorldToBoneParentPoseTransform();
+    }
+
+  //Start or define mode
+  return NULL;
+}
+
+//----------------------------------------------------------------------
+vtkSmartPointer<vtkTransform> vtkBoneWidget::CreateWorldToBoneParentPoseTransform()
+{
+  vtkSmartPointer<vtkTransform> poseTransform
+    = vtkSmartPointer<vtkTransform>::New();
   if (!this->BoneParent)
     {
-    return transform;
+    return poseTransform;
     }
 
-  transform->Translate(this->BoneParent->GetTailWorldPosition());
+  poseTransform->Translate(this->BoneParent->GetTailPoseWorldPosition());
 
   double resultTransform[4];
-  if (this->WidgetState == Rest)
-    {
-    CopyQuaternion(this->BoneParent->RestTransform, resultTransform);
-    }
-  else
-    {
-    MultiplyQuaternion(this->BoneParent->GetPoseTransform(),
-                       this->BoneParent->GetRestTransform(),
-                       resultTransform);
-    }
+  MultiplyQuaternion(this->BoneParent->GetPoseTransform(),
+                     this->BoneParent->GetRestTransform(),
+                     resultTransform);
   NormalizeQuaternion(resultTransform);
 
   double axis[3];
   double angle = QuaternionToAxisAngle(resultTransform, axis);
-  transform->RotateWXYZ(vtkMath::DegreesFromRadians(angle), axis);
-  return transform;
+  poseTransform->RotateWXYZ(vtkMath::DegreesFromRadians(angle), axis);
+  return poseTransform;
+}
+
+//----------------------------------------------------------------------
+vtkSmartPointer<vtkTransform> vtkBoneWidget::CreateWorldToBoneParentRestTransform()
+{
+  vtkSmartPointer<vtkTransform> restTransform
+    = vtkSmartPointer<vtkTransform>::New();
+  if (!this->BoneParent)
+    {
+    return restTransform;
+    }
+
+  //Translation
+  restTransform->Translate(this->BoneParent->GetTailRestWorldPosition());
+
+  //Rotation
+  double axis[3];
+  double angle =
+    QuaternionToAxisAngle(this->BoneParent->GetRestTransform(), axis);
+  restTransform->RotateWXYZ(vtkMath::DegreesFromRadians(angle), axis);
+
+  return restTransform;
 }
 
 //----------------------------------------------------------------------

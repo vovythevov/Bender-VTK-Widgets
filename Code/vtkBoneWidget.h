@@ -30,7 +30,8 @@
 #include "vtkAbstractWidget.h"
 #include "vtkBoneWidgetHeader.h"
 
-#include "vtkCommand.h"
+#include <vtkCommand.h>
+#include <vtkSmartPointer.h>
 
 class vtkAxesActor;
 class vtkBoneRepresentation;
@@ -216,7 +217,19 @@ public:
   //    Start/Define mode T = NULL
   /// Where the translation is the translation by the bone parent's tail
   // The user is responsible for deleting the transformed received.
-  vtkTransform* CreateWorldToBoneParentTransform();
+  vtkSmartPointer<vtkTransform> CreateWorldToBoneParentTransform();
+
+  // Description:
+  // Get the transform from world to bone parent coordinates for the rest mode.
+  // This transform is identity is the bone does not have a parent, otherwise
+  //    T = BoneParentRestTransform + Translation
+  vtkSmartPointer<vtkTransform> CreateWorldToBoneParentRestTransform();
+
+  // Description:
+  // Get the transform from world to bone parent coordinates for the pose mode.
+  // This transform is identity is the bone does not have a parent, otherwise
+  //    T = BonreParentRestTransform*BoneParentPoseTransform + Translation
+  vtkSmartPointer<vtkTransform> CreateWorldToBoneParentPoseTransform();
 
   // Description:
   // Set/Get if the bone Head is linked, i.e merged. with the parent Tail
