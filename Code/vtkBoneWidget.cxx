@@ -1146,10 +1146,7 @@ void vtkBoneWidget::MoveAction(vtkAbstractWidget *w)
       self->RebuildAxes();
       self->RebuildParentageLink();
 
-      // \todo: factorize call to InteractionEvent and SetAbortFlag
       //self->InvokeEvent(vtkBoneWidget::RestChangedEvent, NULL);
-      self->InvokeEvent(vtkCommand::InteractionEvent,NULL);
-      self->Modified();
       }
 
     else if ( self->TailSelected )
@@ -1161,8 +1158,6 @@ void vtkBoneWidget::MoveAction(vtkAbstractWidget *w)
       self->RebuildParentageLink();
 
       self->InvokeEvent(vtkBoneWidget::RestChangedEvent, NULL);
-      self->InvokeEvent(vtkCommand::InteractionEvent,NULL);
-      self->Modified();
       }
 
     else if ( self->BoneSelected )
@@ -1180,9 +1175,10 @@ void vtkBoneWidget::MoveAction(vtkAbstractWidget *w)
         }
 
       self->InvokeEvent(vtkBoneWidget::RestChangedEvent, NULL);
-      self->InvokeEvent(vtkCommand::InteractionEvent,NULL);
-      self->Modified();
       }
+
+    self->InvokeEvent(vtkCommand::InteractionEvent,NULL);
+    self->Modified();
     }
 
   else if (self->WidgetState == vtkBoneWidget::Pose)
@@ -1559,7 +1555,7 @@ void vtkBoneWidget::SetWidgetState(int state)
         {
         this->RebuildRestTransform();
         }
-      else
+      else //previous state was rest
         {
         //Need to rebuild the pose mode as a function of the the rest mode.
         double distance = this->GetBoneRepresentation()->GetDistance();
@@ -1568,7 +1564,7 @@ void vtkBoneWidget::SetWidgetState(int state)
         double rotateWorldYQuaternion[4];
         MultiplyQuaternion(this->GetPoseTransform(),
                            this->GetRestTransform(),
-                            rotateWorldYQuaternion);
+                           rotateWorldYQuaternion);
         NormalizeQuaternion(rotateWorldYQuaternion);
 
         //Convert transform to rotation axis
@@ -1601,10 +1597,8 @@ void vtkBoneWidget::SetWidgetState(int state)
           this->GetBoneRepresentation()->SetHeadWorldPosition(newHead);
           }
 
-        //Now the the tail
-        //The tail is given by the new Y direction
-        // (scaled to the correct distance of course)
-        // and added to the new head position
+        //The tail is given by the new Y direction (scaled to the correct
+        // distance of course) and added to the new head position
         double newTail[3],newHead[3];
         this->GetBoneRepresentation()->GetHeadWorldPosition(newHead);
 
